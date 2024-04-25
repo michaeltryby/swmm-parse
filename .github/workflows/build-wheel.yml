@@ -1,0 +1,35 @@
+name: Build Wheels
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  build_dist:
+    name: Build swmm-parse distribution
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./swmm-parse
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Build wheel
+        run: python -m build
+      - uses: actions/upload-artifact@v3
+        with:
+          path: swmm-parse/dist/swmm_parse*.*
