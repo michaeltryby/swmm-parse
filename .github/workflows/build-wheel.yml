@@ -15,9 +15,6 @@ jobs:
   build_dist:
     name: Build swmm-parse distribution
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./swmm-parse
 
     steps:
       - name: Checkout repo
@@ -28,7 +25,7 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Build wheel
+      - name: Build distribution
         run: python -m build
       - uses: actions/upload-artifact@v3
         with:
