@@ -26,10 +26,15 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src/"]
-include = ["swmm.parse"]
+include = [
+    "swmm.parse",
+    "swmm.parse.grammars",
+]
 
 
 [tool.setuptools.package-data]
