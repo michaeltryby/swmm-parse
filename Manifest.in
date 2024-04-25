@@ -1,0 +1,8 @@
+
+
+
+include README.md
+include LICENSE.md
+include pyproject.toml
+
+recursive-include src/swmm/parse/grammars *.lark

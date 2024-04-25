@@ -1,0 +1,193 @@
+//
+//  input-earley.lark
+//
+//  Created: Apr 25, 2023
+//  Updated:
+//
+//  Author:  Michael E. Tryby
+//           US EPA - ORD/CESER
+//
+//  Notes:   A grammar for the LALR(1) parser
+//
+
+
+%import common.NEWLINE                                                 -> _NL
+%import common.WS_INLINE                                               -> _SP
+
+//%ignore _SP
+%ignore _SP _NL
+%ignore _SP? _COMMENT _NL
+
+
+start           :  _sections+
+
+
+title           :  word (_SP (word|hyphen))* _EOR                  -> record
+
+options         :  keyword (_SP (keyword|date|time)) _EOR          -> record
+
+report          :  keyword _SP (keyword|name (_SP name)*) _EOR     -> record
+
+files           :  keyword (_SP (keyword|date|time)) _EOR          -> record
+
+
+raingages       :  name _SP keyword _SP time _SP float _SP keyword _SP name _EOR  -> record
+
+evaporation     :  keyword _SP float _EOR                          -> record
+// TEMPERATURE
+// ADJUSTMENTS
+
+
+
+subcatchments   :  name (_SP name)~2 _SP integer _SP float (_SP float)~2 _EOR     -> record
+
+subareas        :  name _SP float (_SP float)~4 _SP keyword _EOR   -> record
+
+infiltration    :  name _SP float (_SP float)~2 _EOR               -> record
+
+// LID_CONTROLS
+// LID_USAGE
+
+
+// AQUIFERS
+// GROUNDWATER
+// GWF
+// SNOWPACK
+
+
+
+junctions       :  (name _SP float _EOR
+                |  name (_SP float)~3 (_SP integer)~2 _EOR)        -> record
+
+// outfalls       :  name _SP float (_SP keyword)~2 _EOR         -> record
+
+dividers        :  name _SP float _SP name _SP keyword _SP float _EOR               -> record
+
+// storage        :  name (_SP float)~3 _SP keyword _SP name (_SP integer)~2 _EOR  -> record
+
+
+
+conduits        :  name (_SP name)~2 (_SP (integer|float))~5 _EOR -> record
+
+// pumps          :  name (_SP name)~3 _EOR                      -> record
+
+// orifices       :  name (_SP name)~2 _SP keyword (_SP float)~2 (_SP keyword _SP time)? _EOR  -> record
+
+// weirs          :  name (_SP name)~2 _SP keyword (_SP float)~2 _SP keyword (_SP integer)~2 _EOR   -> record
+
+// OUTLETS
+// outlets        :  name (_SP name)~2 _SP float _SP keyword (_SP float)~2 _SP keyword _EOR    -> record
+
+
+xsections       :  name _SP keyword (_SP (integer|float))~4 _EOR -> record
+// TRANSECTS
+// LOSSES
+
+// controls       :  keyword (_SP (keyword | name | (operator _SP (integer | float))))* _EOR -> record
+
+
+pollutants      :  name _SP keyword (_SP integer)~4 (_SP keyword _SP name _SP float)? _EOR -> record
+
+landuses        :  name _EOR  -> record
+
+coverages       :  name (_SP name _SP integer)~2 _EOR  -> record
+// LOADINGS
+// BUILDUP
+washoff         :  name _SP name _SP keyword (_SP (integer|float))~4 _EOR -> record
+// TREATMENT
+
+
+// INFLOWS
+// DWF
+// RDII
+// HYDROGRAPHS
+
+
+// CURVES
+timeseries      :  name (_SP time _SP float)+ _EOR -> record
+
+// patterns       :  name (_SP keyword)? (_SP float)+ _EOR -> record
+
+
+
+section{arg1, arg2}:  "[" arg1 "]" _EOR arg2*
+
+
+
+_sections       :  section{/TITLE/, title}
+                |  section{/OPTIONS/, options}
+                |  section{/REPORT/, report}
+                |  section{/FILES/, files}
+
+                |  section{/RAINGAGES/, raingages}
+                |  section{/EVAPORATION/, evaporation}
+//                |  temperature
+//                |  adjustments
+
+                |  section{/SUBCATCHMENTS/, subcatchments}
+                |  section{/SUBAREAS/, subareas}
+                |  section{/INFILTRATION/, infiltration}
+
+//                    |  lid_controls
+//                    |  lid_usage
+
+//                    |  aquifers
+//                    |  groundwater
+//                    |  gwf
+//                    |  snowpack
+
+                |  section{/JUNCTIONS/, junctions}
+//                    |  outfalls
+                |  section{/DIVIDERS/, dividers}
+//                    |  storage
+
+                |  section{/CONDUITS/, conduits}
+//                    |  pumps
+//                    |  orifices
+//                    |  weirs
+//                    |  outlets
+
+                |  section{/XSECTIONS/, xsections}
+//                    |  transects
+//                    |  losses
+//                    |  controls
+
+                |  section{/POLLUTANTS/, pollutants}
+                |  section{/LANDUSES/, landuses}
+                |  section{/COVERAGES/, coverages}
+//                    |  loadings
+//                    |  buildup
+                |  section{/WASHOFF/, washoff}
+//                    |  treatment
+
+//                    |  inflows
+//                    |  dwf
+//                    |  rdii
+//                    |  hydrographs
+
+//                    |  curves
+                |  section{/TIMESERIES/, timeseries}
+//                    |  patterns
+
+
+_COMMENT        :  /;[^\n]*/
+
+_EOR            :  (_SP? _NL|_SP? _COMMENT _NL)
+
+keyword         :  /[\/A-Z_]+/
+
+word            :  /[a-zA-Z]+/
+
+name            :  /[a-zA-Z0-9-@]+/
+
+date            :  /\d{1,2}\/\d{1,2}(\/\d{4})?/
+
+time            :  /\d{1,2}:\d{2}(:\d{2})?/
+
+float           :  /(\d+\.\d*|\.\d+)/
+
+integer         :  /\d+/
+
+operator        :  /=|<>|<=?|>=?/
+
+hyphen          :  /-/

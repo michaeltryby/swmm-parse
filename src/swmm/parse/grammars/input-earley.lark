@@ -1,0 +1,59 @@
+//
+//  input-earley.lark
+//
+//  Created: Apr 25, 2023
+//  Updated:
+//
+//  Author:  Michael E. Tryby
+//           US EPA - ORD/CESER
+//
+//  Notes:   A slim grammar for the Earley parser
+//           Quote file paths
+//
+
+%import common.NEWLINE                          -> _NL
+%import common.WS_INLINE                        -> _SP
+
+%ignore _SP
+%ignore _SP _NL
+%ignore _COMMENT
+%ignore _COMMENT _NL
+
+
+start       :  _NL? section*
+
+section     :  "[" KEYWORD "]" _EOR record*
+
+record      :  field (_SP field)* _EOR
+
+field       :  KEYWORD                          -> keyword
+            |  EDGE_CASE                        -> keyword
+            |  DATE                             -> date
+            |  TIME                             -> time
+            |  FLOAT                            -> float
+            |  INTEGER                          -> integer
+            |  OPERATOR                         -> operator
+            |  PATH                             -> path
+            |  NAME                             -> name
+
+KEYWORD     :  /[\/#(A-Za-z)_-]+/
+
+EDGE_CASE   :  /TYPE[1-5]|X1|PUMP[1-5]/
+
+DATE        :  /\d{1,2}\/\d{1,2}(\/\d{4})?/
+
+TIME        :  /\d{1,2}:\d{2}(:\d{2})?/
+
+FLOAT       :  /(-)?(\d+\.\d*|\.\d+)/
+
+OPERATOR    :  /=|<>|<=?|>=?/
+
+PATH        :  /".*"/
+
+NAME        :  /[^ \t\n\r\f\[\]";:]+/
+
+INTEGER     :  /(?<!\.)\d+(?!\.\d)/
+
+_COMMENT    :  /;[^\n]*/
+
+_EOR        :  (_SP? (_NL | _COMMENT _NL))

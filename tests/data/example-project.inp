@@ -1,0 +1,111 @@
+;
+;  example-project.inp
+;
+;  Created: Apr 25, 2024
+;  Updated:
+;
+;  Ref: Rossman, L. A. Storm Water Management Model User’s Manual Version 5.2. (2022)
+;
+
+
+[TITLE]
+Example SWMM Project
+
+[OPTIONS]
+FLOW_UNITS CFS
+INFILTRATION GREEN_AMPT
+FLOW_ROUTING KINWAVE
+START_DATE 8/6/2002
+START_TIME 10:00
+END_TIME 18:00
+WET_STEP 00:15:00
+DRY_STEP 01:00:00
+ROUTING_STEP 00:05:00
+
+[RAINGAGES]
+;;Name Format Interval SCF DataSource SourceName
+;;=========================================================
+GAGE1 INTENSITY 0:15 1.0 TIMESERIES SERIES1
+
+[EVAPORATION]
+CONSTANT 0.02
+
+[SUBCATCHMENTS]
+;;Name Raingage Outlet Area %Imperv Width Slope
+;;====================================================
+AREA1 GAGE1 NODE1 2 80.0 800.0 1.0
+AREA2 GAGE1 NODE2 2 75.0 50.0 1.0
+
+[SUBAREAS]
+;;Subcatch N_Imp N_Perv S_Imp S_Perv %ZER RouteTo
+;;=====================================================
+AREA1 0.2 0.02 0.02 0.1 20.0 OUTLET
+AREA2 0.2 0.02 0.02 0.1 20.0 OUTLET
+
+[INFILTRATION]
+;;Subcatch Suction Conduct InitDef
+;;======================================
+AREA1 4.0 1.0 0.34
+AREA2 4.0 1.0 0.34
+
+[JUNCTIONS]
+;;Name Elev
+;;============
+NODE1 10.0
+NODE2 10.0
+NODE3 5.0
+NODE4 5.0
+NODE6 1.0
+NODE7 2.0
+
+[DIVIDERS]
+;;Name Elev Link Type Parameters
+;;=======================================
+NODE5 3.0 C6 CUTOFF 1.0
+
+[CONDUITS]
+;;Name Node1 Node2 Length N Z1 Z2 Q0
+;;===========================================================
+C1 NODE1 NODE3 800 0.01 0 0 0
+C2 NODE2 NODE4 800 0.01 0 0 0
+C3 NODE3 NODE5 400 0.01 0 0 0
+C4 NODE4 NODE5 400 0.01 0 0 0
+C5 NODE5 NODE6 600 0.01 0 0 0
+C6 NODE5 NODE7 400 0.01 0 0 0
+
+[XSECTIONS]
+;;Link Type G1 G2 G3 G4
+;;===================================================
+C1 RECT_OPEN 0.5 1 0 0
+C2 RECT_OPEN 0.5 1 0 0
+C3 CIRCULAR  1.0 0 0 0
+C4 RECT_OPEN 1.0 1.0 0 0
+C5 PARABOLIC 1.5 2.0 0 0
+C6 PARABOLIC 1.5 2.0 0 0
+
+[POLLUTANTS]
+;;Name Units Cppt Cgw Cii Kd Snow CoPollut CoFract
+;;==========================================================
+TSS MG/L 0 0 0 0
+Lead UG/L 0 0 0 0 NO TSS 0.20
+
+[LANDUSES]
+RESIDENTIAL
+UNDEVELOPED
+
+[WASHOFF]
+;;Landuse Pollutant Type Coeff Expon SweepEff BMPEff
+;;===============================================================
+RESIDENTIAL TSS EMC 23.4 0 0 0
+UNDEVELOPED TSS EMC 12.1 0 0 0
+
+[COVERAGES]
+;;Subcatch Landuse Pcnt Landuse Pcnt
+;;==================================================
+AREA1 RESIDENTIAL 80 UNDEVELOPED 20
+AREA2 RESIDENTIAL 55 UNDEVELOPED 45
+
+[TIMESERIES]
+;;Rainfall time series
+SERIES1 0:00 0.1 0:15 1.0 0:30 0.5
+SERIES1 0:45 0.1 1:00 0.0 2:00 0.0

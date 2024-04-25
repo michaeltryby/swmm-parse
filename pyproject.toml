@@ -1,0 +1,40 @@
+#
+#  pyproject.toml
+#
+#  Created: Apr 25, 2024
+#  Updated:
+#
+#  Author:  Michael E. Tryby
+#           US EPA - ORD/CESER
+#
+
+
+[build-system]
+requires = [
+    "build",
+    "setuptools",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "swmm-parse"
+description = "File parsing toolkit for SWMM"
+dependencies = [
+    "lark",
+]
+dynamic = ["version"]
+
+
+[tool.setuptools.packages.find]
+where = ["src/"]
+include = ["swmm.parse"]
+
+
+[tool.setuptools.package-data]
+"*" = ["*.lark"]
+
+
+[tool.setuptools.dynamic]
+version = {attr = "swmm.parse.__version__"}
