@@ -21,7 +21,7 @@ Installs requirements and runs tests
 
 ## Usage
 
-Create a parser using the grammars provided.
+Convert SWMM input into a parse tree.
 
 ```
 from lark import Lark
@@ -38,7 +38,7 @@ Hello SWMM!
 print(l.parse(input))
 ```
 
-Here is the output.
+Output
 
 ```
 Tree(Token('RULE', 'start'), [Tree(Token('RULE', 'section'), [Token('KEYWORD', 'TITLE'), Tree(Token('RULE', 'record'), [Tree('keyword', [Token('KEYWORD', 'Hello')]), Tree('name', [Token('NAME', 'SWMM!')])])])])
