@@ -1,0 +1,43 @@
+//
+//  report-earley.lark
+//
+//  Created: Apr 26, 2024
+//  Updated: Apr 30, 2024
+//
+//  Author:  Michael E. Tryby
+//           US EPA - ORD/CESER
+//
+//  Notes:   A report file grammar for Earley parser
+//
+
+%import common.NEWLINE                          -> _NL
+%import common.WS_INLINE                        -> _SP
+
+%ignore _SP
+
+
+
+start       :  _NL report
+
+report      :  section* epilogue
+
+section     :  title heading? data
+
+title       :  RECORD _NL LINE _NL
+            |  ASTERISK _NL RECORD _NL ASTERISK _NL
+            |  ASTERISK RECORD _NL RECORD _NL ASTERISK LINE~2 _NL
+
+heading     :  (_NL RECORD | LINE) _NL (RECORD _NL)~0..4 LINE _NL
+
+data        :  record (_NL (record | LINE ))* _NL
+
+epilogue    :  record _NL record _NL record
+
+record      :  RECORD
+
+
+RECORD      :  /[^\n*]/+
+
+LINE        :  /-/+
+
+ASTERISK    : /\*/+
