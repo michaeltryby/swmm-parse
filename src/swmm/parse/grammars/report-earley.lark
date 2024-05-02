@@ -14,30 +14,41 @@
 %import common.WS_INLINE                        -> _SP
 
 %ignore _SP
-
+%ignore _ELLIPSIS
 
 
 start       :  _NL report
 
-report      :  section* epilogue
+report      :  prologue section* epilogue
 
-section     :  title heading? data
+prologue    :  RECORD /-/ RECORD _NL _LINE _NL table
 
-title       :  RECORD _NL LINE _NL
-            |  ASTERISK _NL RECORD _NL ASTERISK _NL
-            |  ASTERISK RECORD _NL RECORD _NL ASTERISK LINE~2 _NL
+section     :  title heading? table
 
-heading     :  (_NL RECORD | LINE) _NL (RECORD _NL)~0..4 LINE _NL
+epilogue    :  RECORD _NL RECORD _NL RECORD
 
-data        :  record (_NL (record | LINE ))* _NL
+title       :  _ASTERISK _NL RECORD _NL _ASTERISK _NL
+            |  _ASTERISK RECORD _NL RECORD _NL _ASTERISK _LINE~2 _NL
 
-epilogue    :  record _NL record _NL record
+heading     :  (RECORD | _LINE) _NL (RECORD _NL)~0..4 _LINE _NL
 
-record      :  RECORD
+table       :  record (_NL record)* _NL _NL
 
+//record      :  RECORD
 
-RECORD      :  /[^\n*]/+
+record      :  field (_SP field)*
 
-LINE        :  /-/+
+field       :  FLOAT
+            |  WORD
 
-ASTERISK    : /\*/+
+FLOAT       :  /\d.\d/
+
+WORD        :  /[\w]+:?\.?/
+
+RECORD      :  /[^\n*-]+/
+
+_LINE        :  /-+/
+
+_ELLIPSIS    :  /\.{3,}/
+
+_ASTERISK    :  /\*+/
