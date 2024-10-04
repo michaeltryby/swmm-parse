@@ -9,7 +9,6 @@
 #
 
 import os
-# from io import StringIO
 
 from lark import Lark
 import pytest

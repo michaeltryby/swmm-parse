@@ -20,7 +20,7 @@ import swmm.parse.to_input_file as sltf
 
 DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data')
 EXAMPLE_PROJECT = os.path.join(DATA_PATH, 'example-project.inp')
-EXPECTED_OUTPUT = os.path.join(DATA_PATH, 'expected-input.txt')
+EXPECTED_OUTPUT = os.path.join(DATA_PATH, 'expected-output.txt')
 
 
 def test_to_input_file(mocker):
