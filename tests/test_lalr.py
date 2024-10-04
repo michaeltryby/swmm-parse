@@ -19,7 +19,7 @@ EXAMPLE_PROJECT = os.path.join(DATA_PATH, 'example-project.inp')
 EXPECTED_TREE = os.path.join(DATA_PATH, 'expected-lalr.txt')
 
 
-def test_lalr(mocker):
+def test_lalr():
 
     # Read expected tree from file
     with open(EXPECTED_TREE, 'r') as file:

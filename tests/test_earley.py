@@ -19,7 +19,7 @@ EXAMPLE_PROJECT = os.path.join(DATA_PATH, 'example-project.inp')
 EXPECTED_TREE = os.path.join(DATA_PATH, 'expected-earley.txt')
 
 
-def test_early(mocker):
+def test_early():
 
     # Read expected tree from file
     with open(EXPECTED_TREE, 'r') as file:
