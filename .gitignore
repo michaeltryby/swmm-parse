@@ -2,6 +2,9 @@
 
 # Ignore build and test related directories
 
+.DS_Store
+
+
 *.egg-info/
 dist/
 
