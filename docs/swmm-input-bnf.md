@@ -20,9 +20,7 @@ The grammar reflects the full SWMM 5.2 specification.
 The following conventions are used throughout this document:
 
 ```bnf
-<rule> ::= definition of a non-terminal
-
-terminal literal text, case-insensitive keyword, or fixed token
+<rule> ::= definition of a non-terminal, terminal literal text, case-insensitive keyword, or fixed token
 
 [item] item is optional
 
@@ -86,45 +84,21 @@ Global simulation options. Each line is a keyword-value pair.
 
 <option-line> ::= <option-key> <option-value> <newline>
 
-<option-key> ::= 'FLOW_UNITS' | 'INFILTRATION' | 'FLOW_ROUTING'
+<option-key> ::= 'FLOW_UNITS' | 'INFILTRATION' | 'FLOW_ROUTING' | 'LINK_OFFSETS' | 'FORCE_MAIN_EQUATION'
 
-| 'LINK_OFFSETS' | 'FORCE_MAIN_EQUATION'
+| 'IGNORE_RAINFALL' | 'IGNORE_SNOWMELT' | 'IGNORE_GROUNDWATER' | 'IGNORE_RDII' | 'IGNORE_ROUTING' 
 
-| 'IGNORE_RAINFALL' | 'IGNORE_SNOWMELT'
+| 'IGNORE_QUALITY' | 'START_DATE' | 'START_TIME' | 'REPORT_START_DATE' | 'REPORT_START_TIME' | 'END_DATE' 
 
-| 'IGNORE_GROUNDWATER' | 'IGNORE_RDII'
+| 'END_TIME' | 'SWEEP_START' | 'SWEEP_END' | 'DRY_DAYS' | 'REPORT_STEP' | 'WET_STEP' | 'DRY_STEP' 
 
-| 'IGNORE_ROUTING' | 'IGNORE_QUALITY'
+| 'ROUTING_STEP' | 'RULE_STEP' | 'LENGTHENING_STEP' | 'VARIABLE_STEP' | 'MINIMUM_STEP' | 'INERTIAL_DAMPING' 
 
-| 'START_DATE' | 'START_TIME'
-
-| 'REPORT_START_DATE' | 'REPORT_START_TIME'
-
-| 'END_DATE' | 'END_TIME'
-
-| 'SWEEP_START' | 'SWEEP_END'
-
-| 'DRY_DAYS' | 'REPORT_STEP'
-
-| 'WET_STEP' | 'DRY_STEP' | 'ROUTING_STEP'
-
-| 'RULE_STEP' | 'LENGTHENING_STEP'
-
-| 'VARIABLE_STEP' | 'MINIMUM_STEP'
-
-| 'INERTIAL_DAMPING' | 'NORMAL_FLOW_LIMITED'
-
-| 'MIN_SURFAREA' | 'MIN_SLOPE'
-
-| 'MAX_TRIALS' | 'HEAD_TOLERANCE'
-
-| 'THREADS' | 'TEMPDIR'
+| 'NORMAL_FLOW_LIMITED' | 'MIN_SURFAREA' | 'MIN_SLOPE' | 'MAX_TRIALS' | 'HEAD_TOLERANCE' | 'THREADS' | 'TEMPDIR'
 
 <flow-units> ::= 'CFS' | 'GPM' | 'MGD' | 'CMS' | 'LPS' | 'MLD'
 
-<infiltration>::= 'HORTON' | 'MODIFIED_HORTON' | 'GREEN_AMPT'
-
-| 'MODIFIED_GREEN_AMPT' | 'CURVE_NUMBER'
+<infiltration>::= 'HORTON' | 'MODIFIED_HORTON' | 'GREEN_AMPT' | 'MODIFIED_GREEN_AMPT' | 'CURVE_NUMBER'
 
 <flow-routing>::= 'STEADY' | 'KINWAVE' | 'DYNWAVE'
 
@@ -143,9 +117,7 @@ a single invert elevation and optional surcharge/ponding parameters.
 ```bnf
 <junctions-section> ::= '[JUNCTIONS]' <newline> {<junction-line>}
 
-<junction-line> ::= <name> <elevation> [<maxdepth>] [<initdepth>]
-
-[<surdepth>] [<aponded>] <newline>
+<junction-line> ::= <name> <elevation> [<maxdepth>] [<initdepth>] [<surdepth>] [<aponded>] <newline>
 
 <elevation> ::= <real> ;; invert elevation (ft or m)
 
@@ -209,17 +181,13 @@ specified rule.
 ```bnf
 <dividers-section> ::= '[DIVIDERS]' <newline> {<divider-line>}
 
-<divider-line> ::= <name> <elevation> <diverted-link>
-
-<divider-type> <divider-params>
+<divider-line> ::= <name> <elevation> <diverted-link> <divider-type> <divider-params> 
 
 [<maxdepth>] [<initdepth>] [<surdepth>] [<aponded>] <newline>
 
 <divider-type> ::= 'OVERFLOW' | 'CUTOFF' | 'TABULAR' | 'WEIR'
 
-<divider-params> ::= <real> ;; CUTOFF: cutoff flow
-
-| <name> ;; TABULAR: diversion curve name
+<divider-params> ::= <real> ;; CUTOFF: cutoff flow | <name> ;; TABULAR: diversion curve name
 
 | <real> <real> <real> ;; WEIR: min flow, height, coefficient
 ```
@@ -232,15 +200,9 @@ geometry can be defined as a functional or tabular relationship.
 ```bnf
 <storage-section> ::= '[STORAGE]' <newline> {<storage-line>}
 
-<storage-line> ::= <name> <elevation> <maxdepth> <initdepth>
+<storage-line> ::= <name> <elevation> <maxdepth> <initdepth> <storage-curve> [<ponded>] [<fevap>] [<psi> <ksat> <imd>] <newline>
 
-<storage-curve> [<ponded>] [<fevap>]
-
-[<psi> <ksat> <imd>] <newline>
-
-<storage-curve> ::= 'FUNCTIONAL' <a-coeff> <b-coeff> <c-const>
-
-| 'TABULAR' <curve-name>
+<storage-curve> ::= 'FUNCTIONAL' <a-coeff> <b-coeff> <c-const> | 'TABULAR' <curve-name>
 
 <a-coeff> ::= <real> ;; A in A*depth^B + C surface area formula
 
@@ -263,11 +225,7 @@ junctions, outfalls, dividers, and storage units.
 ```bnf
 <conduits-section> ::= '[CONDUITS]' <newline> {<conduit-line>}
 
-<conduit-line> ::= <name> <from-node> <to-node> <length>
-
-<roughness> <in-offset> <out-offset>
-
-[<initflow>] [<maxflow>] <newline>
+<conduit-line> ::= <name> <from-node> <to-node> <length> <roughness> <in-offset> <out-offset> [<initflow>] [<maxflow>] <newline>
 
 <from-node> ::= <name> ;; upstream node name
 
@@ -306,9 +264,7 @@ is defined by a pump curve.
 ```bnf
 <pumps-section> ::= '[PUMPS]' <newline> {<pump-line>}
 
-<pump-line> ::= <name> <from-node> <to-node> <pump-curve>
-
-[<status>] [<startup>] [<shutoff>] <newline>
+<pump-line> ::= <name> <from-node> <to-node> <pump-curve> [<status>] [<startup>] [<shutoff>] <newline>
 
 <pump-curve> ::= <name> ;; name of curve in [CURVES] section
 
@@ -329,11 +285,7 @@ circular or rectangular, side or bottom mounted.
 ```bnf
 <orifices-section> ::= '[ORIFICES]' <newline> {<orifice-line>}
 
-<orifice-line> ::= <name> <from-node> <to-node>
-
-<orifice-type> <offset> <Cd>
-
-[<gated>] [<close-time>] <newline>
+<orifice-line> ::= <name> <from-node> <to-node> <orifice-type> <offset> <Cd> [<gated>] [<close-time>] <newline>
 
 <orifice-type> ::= 'SIDE' | 'BOTTOM'
 
@@ -354,11 +306,7 @@ optional road overtopping are supported.
 ```bnf
 <weirs-section> ::= '[WEIRS]' <newline> {<weir-line>}
 
-<weir-line> ::= <name> <from-node> <to-node>
-
-<weir-type> <crest-height> <Cd>
-
-[<gated>] [<end-con>] [<Cd2>] [<surcharge>]
+<weir-line> ::= <name> <from-node> <to-node> <weir-type> <crest-height> <Cd> [<gated>] [<end-con>] [<Cd2>] [<surcharge>]
 
 [<road-width> <road-surf>] <newline>
 
@@ -387,9 +335,7 @@ relationships.
 ```bnf
 <outlets-section> ::= '[OUTLETS]' <newline> {<outlet-line>}
 
-<outlet-line> ::= <name> <from-node> <to-node> <offset>
-
-<outlet-type> <outlet-params> [<gated>] <newline>
+<outlet-line> ::= <name> <from-node> <to-node> <offset> <outlet-type> <outlet-params> [<gated>] <newline>
 
 <outlet-type> ::= 'TABULAR/DEPTH' | 'TABULAR/HEAD' | 'FUNCTIONAL/DEPTH' | 'FUNCTIONAL/HEAD'
 
@@ -409,21 +355,13 @@ Cross-sectional geometry for conduits, orifices, and weirs.
 
 [<geom3>] [<geom4>] [<barrels>] [<culvert>] <newline>
 
-<shape> ::= 'CIRCULAR' | 'FORCE_MAIN' | 'FILLED_CIRCULAR'
+<shape> ::= 'CIRCULAR' | 'FORCE_MAIN' | 'FILLED_CIRCULAR' | 'RECT_CLOSED' | 'RECT_OPEN' | 'TRAPEZOIDAL'
 
-| 'RECT_CLOSED' | 'RECT_OPEN' | 'TRAPEZOIDAL'
+| 'TRIANGULAR' | 'HORIZ_ELLIPSE' | 'VERT_ELLIPSE' | 'ARCH' | 'PARABOLIC' | 'POWER' | 'RECT_TRIANGULAR'
 
-| 'TRIANGULAR' | 'HORIZ_ELLIPSE' | 'VERT_ELLIPSE'
+| 'RECT_ROUND' | 'MODBASKETHANDLE' | 'EGG' | 'HORSESHOE' | 'GOTHIC' | 'CATENARY' | 'SEMIELLIPTICAL'
 
-| 'ARCH' | 'PARABOLIC' | 'POWER' | 'RECT_TRIANGULAR'
-
-| 'RECT_ROUND' | 'MODBASKETHANDLE' | 'EGG'
-
-| 'HORSESHOE' | 'GOTHIC' | 'CATENARY' | 'SEMIELLIPTICAL'
-
-| 'BASKETHANDLE' | 'SEMICIRCULAR' | 'IRREGULAR'
-
-| 'CUSTOM' | 'DUMMY'
+| 'BASKETHANDLE' | 'SEMICIRCULAR' | 'IRREGULAR' | 'CUSTOM' | 'DUMMY'
 
 ;; For IRREGULAR: geom1 = transect name from [TRANSECTS]
 
@@ -446,13 +384,9 @@ station-elevation format borrowed from HEC-RAS convention.
 
 <transect-block> ::= <nc-line> <x1-line> {<gr-line>}
 
-<nc-line> ::= 'NC' <n-left> <n-right> <n-channel>
+<nc-line> ::= 'NC' <n-left> <n-right> <n-channel> ;; Manning's n for left, right, channel
 
-;; Manning's n for left, right, channel
-
-<x1-line> ::= 'X1' <name> <n-stations> <x-left> <x-right>
-
-<0> <0> <meander> <x-factor> <y-factor>
+<x1-line> ::= 'X1' <name> <n-stations> <x-left> <x-right> <0> <0> <meander> <x-factor> <y-factor>
 
 <gr-line> ::= 'GR' {<elevation> <station>}
 
@@ -467,9 +401,7 @@ along length. Also controls flap gate presence.
 ```bnf
 <losses-section> ::= '[LOSSES]' <newline> {<loss-line>}
 
-<loss-line> ::= <conduit-name> [<kin>] [<kout>] [<kavg>]
-
-[<flap-gate>] [<seepage>] <newline>
+<loss-line> ::= <conduit-name> [<kin>] [<kout>] [<kavg>] [<flap-gate>] [<seepage>] <newline>
 
 <kin> ::= <real> ;; entry loss coefficient
 
@@ -492,9 +424,7 @@ can come from a time series or an external file.
 ```bnf
 <raingages-section> ::= '[RAINGAGES]' <newline> {<raingage-line>}
 
-<raingage-line> ::= <name> <rain-type> <interval> <scf>
-
-<source> <newline>
+<raingage-line> ::= <name> <rain-type> <interval> <scf> <source> <newline>
 
 <rain-type> ::= 'INTENSITY' | 'VOLUME' | 'CUMULATIVE'
 
@@ -502,9 +432,7 @@ can come from a time series or an external file.
 
 <scf> ::= <real> ;; snow catch factor (default 1.0)
 
-<source> ::= 'TIMESERIES' <ts-name>
-
-| 'FILE' <filename> <station-id> <rain-units>
+<source> ::= 'TIMESERIES' <ts-name> | 'FILE' <filename> <station-id> <rain-units>
 
 <rain-units> ::= 'IN' | 'MM'
 ```
@@ -517,11 +445,7 @@ drains to a node or another subcatchment.
 ```bnf
 <subcatchments-section> ::= '[SUBCATCHMENTS]' <newline> {<subcatchment-line>}
 
-<subcatchment-line> ::= <name> <rain-gage> <outlet>
-
-<area> <imperv> <width>
-
-<slope> [<curb-len>] [<snow-pack>] <newline>
+<subcatchment-line> ::= <name> <rain-gage> <outlet> <area> <imperv> <width> <slope> [<curb-len>] [<snow-pack>] <newline>
 
 <rain-gage> ::= <name> ;; rain gage providing rainfall
 
@@ -546,13 +470,9 @@ Overland flow parameters for the pervious and impervious sub-areas
 within each subcatchment.
 
 ```bnf
-<subareas-section> ::= '[SUBAREAS]' <newline> {<subarea-line>}
+<subareas-section> ::= '[SUBAREAS]' <newline> {<subarea-line>} <subarea-line> ::= <subcatch-name> <n-imperv> <n-perv>
 
-<subarea-line> ::= <subcatch-name> <n-imperv> <n-perv>
-
-<ds-imperv> <ds-perv> <pct-zero>
-
-[<route-to>] [<pct-routed>] <newline>
+<ds-imperv> <ds-perv> <pct-zero> [<route-to>] [<pct-routed>] <newline>
 
 <n-imperv> ::= <real> ;; Manning's n for impervious area
 
@@ -576,23 +496,15 @@ Parameter fields depend on the infiltration model selected in
 [OPTIONS].
 
 ```bnf
-<infiltration-section> ::= '[INFILTRATION]' <newline> {<infiltration-line>}
+<infiltration-section> ::= '[INFILTRATION]' <newline> {<infiltration-line>} ;; Horton / Modified Horton:
 
-;; Horton / Modified Horton:
-
-<infiltration-line> ::= <subcatch-name> <max-rate> <min-rate>
-
-<decay> <dry-time> [<max-infil>] <newline>
+<infiltration-line> ::= <subcatch-name> <max-rate> <min-rate> <decay> <dry-time> [<max-infil>] <newline> 
 
 ;; Green-Ampt / Modified Green-Ampt:
 
-<infiltration-line> ::= <subcatch-name> <suction> <ksat> <imd> <newline>
+<infiltration-line> ::= <subcatch-name> <suction> <ksat> <imd> <newline> ;; Curve Number:
 
-;; Curve Number:
-
-<infiltration-line> ::= <subcatch-name> <curve-number>
-
-[<conductivity>] [<dry-time>] <newline>
+<infiltration-line> ::= <subcatch-name> <curve-number> <conductivity>] [<dry-time>] <newline>
 ```
 
 ### 3.5 [LID_CONTROLS]
@@ -629,11 +541,7 @@ Placement of LID controls within subcatchments.
 
 <lid-usage-line> ::= <subcatch-name> <lid-name> <number>
 
-<area> <width> <initsat> <fromimperv>
-
-<toperv> [<rptfile>] [<drainTo>] [<fromperv>]
-
-<newline>
+<area> <width> <initsat> <fromimperv> <toperv> [<rptfile>] [<drainTo>] [<fromperv>] <newline>
 ```
 
 ### 3.7 [AQUIFERS]
@@ -644,11 +552,9 @@ exchange calculations.
 ```bnf
 <aquifers-section> ::= '[AQUIFERS]' <newline> {<aquifer-line>}
 
-<aquifer-line> ::= <name> <por> <wp> <fc> <ksat> <kslope>
+<aquifer-line> ::= <name> <por> <wp> <fc> <ksat> <kslope> <tslope> <etloss> 
 
-<tslope> <etloss> <etdepth> <tbot>
-
-<psi> [<uzone-ksat>] [<uzone-init>] <newline>
+<etdepth> <tbot> <psi> [<uzone-ksat>] [<uzone-init>] <newline>
 
 ;; por=porosity, wp=wilting point, fc=field capacity
 
@@ -670,13 +576,9 @@ Links subcatchments to aquifers and defines groundwater flow parameters.
 ```bnf
 <groundwater-section> ::= '[GROUNDWATER]' <newline> {<gw-line>}
 
-<gw-line> ::= <subcatch-name> <aquifer-name> <node-name>
+<gw-line> ::= <subcatch-name> <aquifer-name> <node-name> <esurf> <a1> <b1> <a2>
 
-<esurf> <a1> <b1> <a2> <b2> <a3>
-
-<dsw> [<egwt>] [<ebot>] [<wgr>] [<umc>]
-
-<newline>
+<b2> <a3> <dsw> [<egwt>] [<ebot>] [<wgr>] [<umc>] <newline>
 
 ;; a1,b1: lateral groundwater flow coefficients
 
@@ -726,13 +628,9 @@ Defines pollutants to be simulated.
 ```bnf
 <pollutants-section> ::= '[POLLUTANTS]' <newline> {<pollutant-line>}
 
-<pollutant-line> ::= <name> <units> [<rain-conc>] [<gw-conc>]
+<pollutant-line> ::= <name> <units> [<rain-conc>] [<gw-conc>] [<rdii-conc>] [<decay>] [<snow-flag>] 
 
-[<rdii-conc>] [<decay>] [<snow-flag>]
-
-[<co-pollutant>] [<co-fraction>]
-
-[<cdwf>] [<cinit>] <newline>
+[<co-pollutant>] [<co-fraction>] [<cdwf>] [<cinit>] <newline>
 
 <units> ::= 'MG/L' | 'UG/L' | 'COUNT/L'
 
@@ -752,9 +650,7 @@ Land use categories for pollutant buildup and washoff calculations.
 ```bnf
 <landuses-section> ::= '[LANDUSES]' <newline> {<landuse-line>}
 
-<landuse-line> ::= <name> [<sweep-interval>] [<availability>]
-
-[<last-swept>] <newline>
+<landuse-line> ::= <name> [<sweep-interval>] [<availability>] [<last-swept>] <newline>
 ```
 
 ### 4.3 [BUILDUP]
@@ -780,9 +676,7 @@ Pollutant washoff functions during rainfall events.
 ```bnf
 <washoff-section> ::= '[WASHOFF]' <newline> {<washoff-line>}
 
-<washoff-line> ::= <landuse-name> <pollutant-name>
-
-<func-type> <c1> <c2> <sweepeff> <bmpeff> <newline>
+<washoff-line> ::= <landuse-name> <pollutant-name> <func-type> <c1> <c2> <sweepeff> <bmpeff> <newline>
 
 <func-type> ::= 'NONE' | 'EXP' | 'RC' | 'EMC'
 
@@ -839,13 +733,9 @@ Direct external inflows of flow or pollutant mass to nodes.
 ```bnf
 <inflows-section> ::= '[INFLOWS]' <newline> {<inflow-line>}
 
-<inflow-line> ::= <node-name> ('FLOW' | <pollutant-name>)
+<inflow-line> ::= <node-name> ('FLOW' | <pollutant-name>) <timeseries-name> <inflow-type>
 
-<timeseries-name> <inflow-type>
-
-[<units-factor>] [<scale-factor>]
-
-[<baseline>] [<baseline-pattern>] <newline>
+[<units-factor>] [<scale-factor>] [<baseline>] [<baseline-pattern>] <newline>
 
 <inflow-type> ::= 'FLOW' | 'CONCEN' | 'MASS'
 ```
@@ -857,11 +747,7 @@ Dry weather flow baseline inflows to nodes for sanitary sewer modeling.
 ```bnf
 <dwf-section> ::= '[DWF]' <newline> {<dwf-line>}
 
-<dwf-line> ::= <node-name> ('FLOW' | <pollutant-name>)
-
-<avg-value> [<pattern1>] [<pattern2>]
-
-[<pattern3>] [<pattern4>] <newline>
+<dwf-line> ::= <node-name> ('FLOW' | <pollutant-name>) <avg-value> [<pattern1>] [<pattern2>] [<pattern3>] [<pattern4>] <newline>
 
 ;; up to 4 time patterns (MONTHLY, DAILY, HOURLY, WEEKEND)
 ```
@@ -877,15 +763,9 @@ type on the first line, followed by data point lines.
 ```bnf
 <curves-section> ::= '[CURVES]' <newline> {<curve-block>}
 
-<curve-block> ::= <curve-name> <curve-type> <x> <y> <newline>
+<curve-block> ::= <curve-name> <curve-type> <x> <y> <newline> {<curve-name> <x> <y> <newline>}
 
-{<curve-name> <x> <y> <newline>}
-
-<curve-type> ::= 'STORAGE' | 'SHAPE' | 'DIVERSION' | 'TIDAL'
-
-| 'PUMP1' | 'PUMP2' | 'PUMP3' | 'PUMP4'
-
-| 'RATING' | 'CONTROL'
+<curve-type> ::= 'STORAGE' | 'SHAPE' | 'DIVERSION' | 'TIDAL' | 'PUMP1' | 'PUMP2' | 'PUMP3' | 'PUMP4' | 'RATING' | 'CONTROL'
 
 ;; PUMP1: volume vs. flow
 
@@ -903,17 +783,11 @@ time-varying inputs. Values can be given inline or loaded from an
 external file.
 
 ```bnf
-<timeseries-section> ::= '[TIMESERIES]' <newline> {<timeseries-block>}
+<timeseries-section> ::= '[TIMESERIES]' <newline> {<timeseries-block>} ;; Inline absolute date/time format:
 
-;; Inline absolute date/time format:
+<timeseries-block> ::= {<ts-name> <date> <time> <value> <newline>} ;; Inline relative time format:
 
-<timeseries-block> ::= {<ts-name> <date> <time> <value> <newline>}
-
-;; Inline relative time format:
-
-<timeseries-block> ::= {<ts-name> <hours> <value> <newline>}
-
-;; File reference:
+<timeseries-block> ::= {<ts-name> <hours> <value> <newline>} ;; File reference:
 
 <timeseries-block> ::= <ts-name> 'FILE' <filename> <newline>
 
@@ -928,9 +802,7 @@ type has a fixed number of multipliers.
 ```bnf
 <patterns-section> ::= '[PATTERNS]' <newline> {<pattern-block>}
 
-<pattern-block> ::= <pattern-name> <pattern-type>
-
-{<multiplier>} <newline>
+<pattern-block> ::= <pattern-name> <pattern-type> {<multiplier>} <newline>
 
 <pattern-type> ::= 'MONTHLY' ;; 12 multipliers (Jan-Dec)
 
@@ -978,9 +850,7 @@ true.
 
 <object> ::= 'NODE' <name> | 'LINK' <name> | 'SIMULATION'
 
-<attribute> ::= 'DEPTH' | 'HEAD' | 'FLOW' | 'STATUS' | 'SETTING'
-
-| 'TIME' | 'DATE' | 'CLOCKTIME' | 'DAY' | 'MONTH'
+<attribute> ::= 'DEPTH' | 'HEAD' | 'FLOW' | 'STATUS' | 'SETTING' | 'TIME' | 'DATE' | 'CLOCKTIME' | 'DAY' | 'MONTH'
 ```
 
 ## 7. Spatial and Display Sections
@@ -1023,9 +893,7 @@ curves require entries.
 ```bnf
 <vertices-section> ::= '[VERTICES]' <newline> {<vertex-line>}
 
-<vertex-line> ::= <link-name> <x> <y> <newline>
-
-;; multiple lines with same link-name define sequential vertices
+<vertex-line> ::= <link-name> <x> <y> <newline> ;; multiple lines with same link-name define sequential vertices
 ```
 
 ### 7.4 [POLYGONS]
@@ -1036,9 +904,7 @@ subcatchment define the polygon.
 ```bnf
 <polygons-section> ::= '[POLYGONS]' <newline> {<polygon-line>}
 
-<polygon-line> ::= <subcatch-name> <x> <y> <newline>
-
-;; polygon is closed implicitly (first = last point not required)
+<polygon-line> ::= <subcatch-name> <x> <y> <newline> ;; polygon is closed implicitly (first = last point not required)
 ```
 
 ### 7.5 [SYMBOLS]
@@ -1046,9 +912,7 @@ subcatchment define the polygon.
 X-Y coordinates of rain gage symbols on the map.
 
 ```bnf
-<symbols-section> ::= '[SYMBOLS]' <newline> {<symbol-line>}
-
-<symbol-line> ::= <raingage-name> <x> <y> <newline>
+<symbols-section> ::= '[SYMBOLS]' <newline> {<symbol-line>} <symbol-line> ::= <raingage-name> <x> <y> <newline>
 ```
 
 ### 7.6 [LABELS]
@@ -1058,11 +922,7 @@ Text labels placed on the map at specified coordinates.
 ```bnf
 <labels-section> ::= '[LABELS]' <newline> {<label-line>}
 
-<label-line> ::= <x> <y> <quoted-string>
-
-[<anchor-node>] [<font>] [<size>]
-
-[<bold>] [<italic>] <newline>
+<label-line> ::= <x> <y> <quoted-string> [<anchor-node>] [<font>] [<size>] [<bold>] [<italic>] <newline>
 
 <quoted-string> ::= '"' {<any-char>} '"'
 
@@ -1082,9 +942,7 @@ Controls what output is written to the report file.
 
 <report-line> ::= <report-key> <report-value> <newline>
 
-<report-key> ::= 'INPUT' | 'CONTINUITY' | 'FLOWSTATS'
-
-| 'CONTROLS' | 'SUBCATCHMENTS' | 'NODES' | 'LINKS'
+<report-key> ::= 'INPUT' | 'CONTINUITY' | 'FLOWSTATS' | 'CONTROLS' | 'SUBCATCHMENTS' | 'NODES' | 'LINKS'
 
 <report-value> ::= 'YES' | 'NO' | 'ALL' | {<name>}
 ```
@@ -1100,13 +958,9 @@ response triangles.
 
 <hydrograph-block> ::= <uh-group-name> <raingage-name> <newline>
 
-{<uh-group-name> <month> <response>
+{<uh-group-name> <month> <response> <R> <T> <K> [<IA-max>] [<IA-rec>] [<IA-ini>] <newline>}
 
-<R> <T> <K> [<IA-max>] [<IA-rec>] [<IA-ini>] <newline>}
-
-<month> ::= 'ALL' | 'JAN' | 'FEB' | 'MAR' | 'APR' | 'MAY' | 'JUN'
-
-| 'JUL' | 'AUG' | 'SEP' | 'OCT' | 'NOV' | 'DEC'
+<month> ::= 'ALL' | 'JAN' | 'FEB' | 'MAR' | 'APR' | 'MAY' | 'JUN' | 'JUL' | 'AUG' | 'SEP' | 'OCT' | 'NOV' | 'DEC'
 
 <response> ::= 'SHORT' | 'MEDIUM' | 'LONG'
 
@@ -1157,17 +1011,13 @@ a time.
 
 <evap-type> ::= 'CONSTANT' <rate>
 
-| 'MONTHLY' <rate-jan> ... <rate-dec>
-
-| 'TIMESERIES' <ts-name>
+| 'MONTHLY' <rate-jan> ... <rate-dec> | 'TIMESERIES' <ts-name>
 
 | 'TEMPERATURE' ;; computed from temperature data
 
 | 'FILE' ;; read from climate file
 
-| 'RECOVERY' <pattern-name>
-
-| 'DRY_ONLY' 'YES' | 'NO'
+| 'RECOVERY' <pattern-name> | 'DRY_ONLY' 'YES' | 'NO'
 
 <rate> ::= <real> ;; in/day or mm/day
 ```
@@ -1183,17 +1033,11 @@ Air temperature data for snowmelt computations.
 
 <temp-type> ::= 'TIMESERIES' <ts-name>
 
-| 'FILE' <filename> [<start-date>]
+| 'FILE' <filename> [<start-date>] | 'WINDSPEED' 'MONTHLY' <v1> ... <v12>
 
-| 'WINDSPEED' 'MONTHLY' <v1> ... <v12>
+| 'WINDSPEED' 'FILE' | 'SNOWMELT' <temp-base> <atm-heat> <neg-heat> <rain-melt>
 
-| 'WINDSPEED' 'FILE'
-
-| 'SNOWMELT' <temp-base> <atm-heat> <neg-heat> <rain-melt>
-
-| 'ADC' 'IMPERVIOUS' {<fraction>}
-
-| 'ADC' 'PERVIOUS' {<fraction>}
+| 'ADC' 'IMPERVIOUS' {<fraction>} | 'ADC' 'PERVIOUS' {<fraction>}
 ```
 
 ## 10. Metadata Sections
@@ -1248,9 +1092,7 @@ Defines profile views of the network for display purposes only.
 
 ['e' | 'E'] ['+' | '-'] <digit> {<digit>}
 
-<date> ::= <month> '/' <day> '/' <year>
-
-;; month/day/year, two or four digit year accepted
+<date> ::= <month> '/' <day> '/' <year> ;; month/day/year, two or four digit year accepted
 
 <time> ::= <hour> ':' <minute> [':' <second>]
 
