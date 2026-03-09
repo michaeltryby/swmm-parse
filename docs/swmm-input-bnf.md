@@ -52,8 +52,7 @@ header or end of file.
 ```bnf
 <swmm-input> ::= {<section>}
 
-<section> ::= <section-header> <newline> {<comment-line> |
-<data-line>}
+<section> ::= <section-header> <newline> {<comment-line> | <data-line>}
 
 <section-header> ::= '[' <section-name> ']'
 
@@ -87,8 +86,7 @@ Global simulation options. Each line is a keyword-value pair.
 
 <option-line> ::= <option-key> <option-value> <newline>
 
-<option-key> ::= 'FLOW_UNITS' | 'INFILTRATION' |
-'FLOW_ROUTING'
+<option-key> ::= 'FLOW_UNITS' | 'INFILTRATION' | 'FLOW_ROUTING'
 
 | 'LINK_OFFSETS' | 'FORCE_MAIN_EQUATION'
 
@@ -122,11 +120,9 @@ Global simulation options. Each line is a keyword-value pair.
 
 | 'THREADS' | 'TEMPDIR'
 
-<flow-units> ::= 'CFS' | 'GPM' | 'MGD' | 'CMS' |
-'LPS' | 'MLD'
+<flow-units> ::= 'CFS' | 'GPM' | 'MGD' | 'CMS' | 'LPS' | 'MLD'
 
-<infiltration>::= 'HORTON' | 'MODIFIED_HORTON' |
-'GREEN_AMPT'
+<infiltration>::= 'HORTON' | 'MODIFIED_HORTON' | 'GREEN_AMPT'
 
 | 'MODIFIED_GREEN_AMPT' | 'CURVE_NUMBER'
 
@@ -145,25 +141,21 @@ Defines junction nodes — points where conduits connect. Junctions have
 a single invert elevation and optional surcharge/ponding parameters.
 
 ```bnf
-<junctions-section> ::= '[JUNCTIONS]' <newline>
-{<junction-line>}
+<junctions-section> ::= '[JUNCTIONS]' <newline> {<junction-line>}
 
-<junction-line> ::= <name> <elevation> [<maxdepth>]
-[<initdepth>]
+<junction-line> ::= <name> <elevation> [<maxdepth>] [<initdepth>]
 
 [<surdepth>] [<aponded>] <newline>
 
 <elevation> ::= <real> ;; invert elevation (ft or m)
 
-<maxdepth> ::= <real> ;; max water depth (0 = crown of connecting
-conduits)
+<maxdepth> ::= <real> ;; max water depth (0 = crown of connecting conduits)
 
 <initdepth> ::= <real> ;; initial water depth
 
 <surdepth> ::= <real> ;; additional surcharge depth
 
-<aponded> ::= <real> ;; ponded surface area when flooded (ft2 or
-m2)
+<aponded> ::= <real> ;; ponded surface area when flooded (ft2 or m2)
 ```
 
 | Field     | Type    | Required | Description                                  |
@@ -181,15 +173,13 @@ Terminal nodes of the drainage network. Each outfall has a boundary
 condition type that controls the tailwater elevation.
 
 ```bnf
-<outfalls-section> ::= '[OUTFALLS]' <newline>
-{<outfall-line>}
+<outfalls-section> ::= '[OUTFALLS]' <newline> {<outfall-line>}
 
 <outfall-line> ::= <name> <elevation> <outfall-type>
 
 [<stage-data>] [<gated>] [<route-to>] <newline>
 
-<outfall-type> ::= 'FREE' | 'NORMAL' | 'FIXED' | 'TIDAL'
-| 'TIMESERIES'
+<outfall-type> ::= 'FREE' | 'NORMAL' | 'FIXED' | 'TIDAL' | 'TIMESERIES'
 
 <stage-data> ::= <real> ;; for FIXED: fixed stage elevation
 
@@ -199,8 +189,7 @@ condition type that controls the tailwater elevation.
 
 <gated> ::= 'YES' | 'NO' ;; flap gate present
 
-<route-to> ::= <name> ;; subcatchment to receive outfall
-discharge
+<route-to> ::= <name> ;; subcatchment to receive outfall discharge
 ```
 
 | Field     | Type              | Required | Description                                                      |
@@ -218,18 +207,15 @@ Flow divider nodes that split inflow between two conduits according to a
 specified rule.
 
 ```bnf
-<dividers-section> ::= '[DIVIDERS]' <newline>
-{<divider-line>}
+<dividers-section> ::= '[DIVIDERS]' <newline> {<divider-line>}
 
 <divider-line> ::= <name> <elevation> <diverted-link>
 
 <divider-type> <divider-params>
 
-[<maxdepth>] [<initdepth>] [<surdepth>] [<aponded>]
-<newline>
+[<maxdepth>] [<initdepth>] [<surdepth>] [<aponded>] <newline>
 
-<divider-type> ::= 'OVERFLOW' | 'CUTOFF' | 'TABULAR' |
-'WEIR'
+<divider-type> ::= 'OVERFLOW' | 'CUTOFF' | 'TABULAR' | 'WEIR'
 
 <divider-params> ::= <real> ;; CUTOFF: cutoff flow
 
@@ -244,18 +230,15 @@ Storage unit nodes representing ponds, tanks, or basins. Storage
 geometry can be defined as a functional or tabular relationship.
 
 ```bnf
-<storage-section> ::= '[STORAGE]' <newline>
-{<storage-line>}
+<storage-section> ::= '[STORAGE]' <newline> {<storage-line>}
 
-<storage-line> ::= <name> <elevation> <maxdepth>
-<initdepth>
+<storage-line> ::= <name> <elevation> <maxdepth> <initdepth>
 
 <storage-curve> [<ponded>] [<fevap>]
 
 [<psi> <ksat> <imd>] <newline>
 
-<storage-curve> ::= 'FUNCTIONAL' <a-coeff> <b-coeff>
-<c-const>
+<storage-curve> ::= 'FUNCTIONAL' <a-coeff> <b-coeff> <c-const>
 
 | 'TABULAR' <curve-name>
 
@@ -278,8 +261,7 @@ Conduits are pipes or channels connecting nodes. They carry flow between
 junctions, outfalls, dividers, and storage units.
 
 ```bnf
-<conduits-section> ::= '[CONDUITS]' <newline>
-{<conduit-line>}
+<conduits-section> ::= '[CONDUITS]' <newline> {<conduit-line>}
 
 <conduit-line> ::= <name> <from-node> <to-node> <length>
 
@@ -345,8 +327,7 @@ Orifice links representing openings in walls or barriers. Can be
 circular or rectangular, side or bottom mounted.
 
 ```bnf
-<orifices-section> ::= '[ORIFICES]' <newline>
-{<orifice-line>}
+<orifices-section> ::= '[ORIFICES]' <newline> {<orifice-line>}
 
 <orifice-line> ::= <name> <from-node> <to-node>
 
@@ -381,12 +362,9 @@ optional road overtopping are supported.
 
 [<road-width> <road-surf>] <newline>
 
-<weir-type> ::= 'TRANSVERSE' | 'SIDEFLOW' | 'V-NOTCH'
+<weir-type> ::= 'TRANSVERSE' | 'SIDEFLOW' | 'V-NOTCH' | 'TRAPEZOIDAL' | 'ROADWAY'
 
-| 'TRAPEZOIDAL' | 'ROADWAY'
-
-<crest-height> ::= <real> ;; offset of weir crest above inlet
-invert
+<crest-height> ::= <real> ;; offset of weir crest above inlet invert
 
 <Cd> ::= <real> ;; discharge coefficient
 
@@ -413,9 +391,7 @@ relationships.
 
 <outlet-type> <outlet-params> [<gated>] <newline>
 
-<outlet-type> ::= 'TABULAR/DEPTH' | 'TABULAR/HEAD'
-
-| 'FUNCTIONAL/DEPTH' | 'FUNCTIONAL/HEAD'
+<outlet-type> ::= 'TABULAR/DEPTH' | 'TABULAR/HEAD' | 'FUNCTIONAL/DEPTH' | 'FUNCTIONAL/HEAD'
 
 <outlet-params> ::= <name> ;; TABULAR: curve name
 
@@ -427,13 +403,11 @@ relationships.
 Cross-sectional geometry for conduits, orifices, and weirs.
 
 ```bnf
-<xsections-section> ::= '[XSECTIONS]' <newline>
-{<xsection-line>}
+<xsections-section> ::= '[XSECTIONS]' <newline> {<xsection-line>}
 
 <xsection-line> ::= <link-name> <shape> <geom1> [<geom2>]
 
-[<geom3>] [<geom4>] [<barrels>] [<culvert>]
-<newline>
+[<geom3>] [<geom4>] [<barrels>] [<culvert>] <newline>
 
 <shape> ::= 'CIRCULAR' | 'FORCE_MAIN' | 'FILLED_CIRCULAR'
 
@@ -468,8 +442,7 @@ Natural channel cross-sections for irregular conduits. Uses a
 station-elevation format borrowed from HEC-RAS convention.
 
 ```bnf
-<transects-section> ::= '[TRANSECTS]' <newline>
-{<transect-block>}
+<transects-section> ::= '[TRANSECTS]' <newline> {<transect-block>}
 
 <transect-block> ::= <nc-line> <x1-line> {<gr-line>}
 
@@ -494,8 +467,7 @@ along length. Also controls flap gate presence.
 ```bnf
 <losses-section> ::= '[LOSSES]' <newline> {<loss-line>}
 
-<loss-line> ::= <conduit-name> [<kin>] [<kout>]
-[<kavg>]
+<loss-line> ::= <conduit-name> [<kin>] [<kout>] [<kavg>]
 
 [<flap-gate>] [<seepage>] <newline>
 
@@ -518,8 +490,7 @@ Rain gage objects that provide rainfall input to subcatchments. Rainfall
 can come from a time series or an external file.
 
 ```bnf
-<raingages-section> ::= '[RAINGAGES]' <newline>
-{<raingage-line>}
+<raingages-section> ::= '[RAINGAGES]' <newline> {<raingage-line>}
 
 <raingage-line> ::= <name> <rain-type> <interval> <scf>
 
@@ -544,8 +515,7 @@ Subcatchments are land areas that generate runoff from rainfall. Each
 drains to a node or another subcatchment.
 
 ```bnf
-<subcatchments-section> ::= '[SUBCATCHMENTS]' <newline>
-{<subcatchment-line>}
+<subcatchments-section> ::= '[SUBCATCHMENTS]' <newline> {<subcatchment-line>}
 
 <subcatchment-line> ::= <name> <rain-gage> <outlet>
 
@@ -576,8 +546,7 @@ Overland flow parameters for the pervious and impervious sub-areas
 within each subcatchment.
 
 ```bnf
-<subareas-section> ::= '[SUBAREAS]' <newline>
-{<subarea-line>}
+<subareas-section> ::= '[SUBAREAS]' <newline> {<subarea-line>}
 
 <subarea-line> ::= <subcatch-name> <n-imperv> <n-perv>
 
@@ -589,13 +558,11 @@ within each subcatchment.
 
 <n-perv> ::= <real> ;; Manning's n for pervious area
 
-<ds-imperv> ::= <real> ;; depression storage for impervious (in
-or mm)
+<ds-imperv> ::= <real> ;; depression storage for impervious (in or mm)
 
 <ds-perv> ::= <real> ;; depression storage for pervious
 
-<pct-zero> ::= <real> ;; percent of impervious with no depression
-storage
+<pct-zero> ::= <real> ;; percent of impervious with no depression storage
 
 <route-to> ::= 'IMPERVIOUS' | 'PERVIOUS' | 'OUTLET'
 
@@ -609,8 +576,7 @@ Parameter fields depend on the infiltration model selected in
 [OPTIONS].
 
 ```bnf
-<infiltration-section> ::= '[INFILTRATION]' <newline>
-{<infiltration-line>}
+<infiltration-section> ::= '[INFILTRATION]' <newline> {<infiltration-line>}
 
 ;; Horton / Modified Horton:
 
@@ -620,8 +586,7 @@ Parameter fields depend on the infiltration model selected in
 
 ;; Green-Ampt / Modified Green-Ampt:
 
-<infiltration-line> ::= <subcatch-name> <suction> <ksat>
-<imd> <newline>
+<infiltration-line> ::= <subcatch-name> <suction> <ksat> <imd> <newline>
 
 ;; Curve Number:
 
@@ -636,15 +601,13 @@ Low Impact Development control definitions. Each LID type is described
 by a series of parameter lines.
 
 ```bnf
-<lid-controls-section> ::= '[LID_CONTROLS]' <newline>
-{<lid-block>}
+<lid-controls-section> ::= '[LID_CONTROLS]' <newline> {<lid-block>}
 
 <lid-block> ::= <lid-name> <lid-type> <newline>
 
 {<lid-layer-line>}
 
-<lid-type> ::= 'BC' | 'PP' | 'GR' | 'IT' | 'RB' |
-'RO' | 'VS'
+<lid-type> ::= 'BC' | 'PP' | 'GR' | 'IT' | 'RB' | 'RO' | 'VS'
 
 ;; BC=Bio-Cell, PP=Porous Pavement, GR=Green Roof,
 
@@ -652,12 +615,9 @@ by a series of parameter lines.
 
 ;; RO=Rooftop Disconnection, VS=Vegetative Swale
 
-<lid-layer-line>::= <lid-name> <layer> <param1> ...
-<paramN> <newline>
+<lid-layer-line>::= <lid-name> <layer> <param1> ... <paramN> <newline>
 
-<layer> ::= 'SURFACE' | 'SOIL' | 'STORAGE' | 'PAVEMENT'
-
-| 'DRAIN' | 'DRAINMAT'
+<layer> ::= 'SURFACE' | 'SOIL' | 'STORAGE' | 'PAVEMENT' | 'DRAIN' | 'DRAINMAT'
 ```
 
 ### 3.6 [LID_USAGE]
@@ -665,8 +625,7 @@ by a series of parameter lines.
 Placement of LID controls within subcatchments.
 
 ```bnf
-<lid-usage-section> ::= '[LID_USAGE]' <newline>
-{<lid-usage-line>}
+<lid-usage-section> ::= '[LID_USAGE]' <newline> {<lid-usage-line>}
 
 <lid-usage-line> ::= <subcatch-name> <lid-name> <number>
 
@@ -683,11 +642,9 @@ Groundwater aquifer properties used by subcatchments for groundwater
 exchange calculations.
 
 ```bnf
-<aquifers-section> ::= '[AQUIFERS]' <newline>
-{<aquifer-line>}
+<aquifers-section> ::= '[AQUIFERS]' <newline> {<aquifer-line>}
 
-<aquifer-line> ::= <name> <por> <wp> <fc> <ksat>
-<kslope>
+<aquifer-line> ::= <name> <por> <wp> <fc> <ksat> <kslope>
 
 <tslope> <etloss> <etdepth> <tbot>
 
@@ -711,8 +668,7 @@ exchange calculations.
 Links subcatchments to aquifers and defines groundwater flow parameters.
 
 ```bnf
-<groundwater-section> ::= '[GROUNDWATER]' <newline>
-{<gw-line>}
+<groundwater-section> ::= '[GROUNDWATER]' <newline> {<gw-line>}
 
 <gw-line> ::= <subcatch-name> <aquifer-name> <node-name>
 
@@ -740,11 +696,9 @@ parameter lines covering plowable, impervious, pervious, and
 melt/redistribution settings.
 
 ```bnf
-<snowpacks-section> ::= '[SNOWPACKS]' <newline>
-{<snowpack-block>}
+<snowpacks-section> ::= '[SNOWPACKS]' <newline> {<snowpack-block>}
 
-<snowpack-block> ::= <snowpack-name> 'PLOWABLE' <params>
-<newline>
+<snowpack-block> ::= <snowpack-name> 'PLOWABLE' <params> <newline>
 
 <snowpack-name> 'IMPERVIOUS' <params> <newline>
 
@@ -752,8 +706,7 @@ melt/redistribution settings.
 
 <snowpack-name> 'REMOVAL' <removal-params> <newline>
 
-<params> ::= <min-melt> <max-melt> <base-temp> <fwf>
-<sdepth> <initsnow> [<initfree>]
+<params> ::= <min-melt> <max-melt> <base-temp> <fwf> <sdepth> <initsnow> [<initfree>]
 
 ;; min-melt/max-melt: melt coefficients at min/max temperatures
 
@@ -771,11 +724,9 @@ melt/redistribution settings.
 Defines pollutants to be simulated.
 
 ```bnf
-<pollutants-section> ::= '[POLLUTANTS]' <newline>
-{<pollutant-line>}
+<pollutants-section> ::= '[POLLUTANTS]' <newline> {<pollutant-line>}
 
-<pollutant-line> ::= <name> <units> [<rain-conc>]
-[<gw-conc>]
+<pollutant-line> ::= <name> <units> [<rain-conc>] [<gw-conc>]
 
 [<rdii-conc>] [<decay>] [<snow-flag>]
 
@@ -799,11 +750,9 @@ Defines pollutants to be simulated.
 Land use categories for pollutant buildup and washoff calculations.
 
 ```bnf
-<landuses-section> ::= '[LANDUSES]' <newline>
-{<landuse-line>}
+<landuses-section> ::= '[LANDUSES]' <newline> {<landuse-line>}
 
-<landuse-line> ::= <name> [<sweep-interval>]
-[<availability>]
+<landuse-line> ::= <name> [<sweep-interval>] [<availability>]
 
 [<last-swept>] <newline>
 ```
@@ -813,15 +762,13 @@ Land use categories for pollutant buildup and washoff calculations.
 Pollutant buildup functions for each land use and pollutant combination.
 
 ```bnf
-<buildup-section> ::= '[BUILDUP]' <newline>
-{<buildup-line>}
+<buildup-section> ::= '[BUILDUP]' <newline> {<buildup-line>}
 
 <buildup-line> ::= <landuse-name> <pollutant-name>
 
 <func-type> <c1> <c2> <c3> <normalizer> <newline>
 
-<func-type> ::= 'NONE' | 'POW' | 'EXP' | 'SAT' |
-'EXT'
+<func-type> ::= 'NONE' | 'POW' | 'EXP' | 'SAT' | 'EXT'
 
 <normalizer> ::= 'AREA' | 'CURB'
 ```
@@ -831,8 +778,7 @@ Pollutant buildup functions for each land use and pollutant combination.
 Pollutant washoff functions during rainfall events.
 
 ```bnf
-<washoff-section> ::= '[WASHOFF]' <newline>
-{<washoff-line>}
+<washoff-section> ::= '[WASHOFF]' <newline> {<washoff-line>}
 
 <washoff-line> ::= <landuse-name> <pollutant-name>
 
@@ -850,11 +796,9 @@ Pollutant washoff functions during rainfall events.
 Fraction of each subcatchment's area assigned to each land use.
 
 ```bnf
-<coverages-section> ::= '[COVERAGES]' <newline>
-{<coverage-line>}
+<coverages-section> ::= '[COVERAGES]' <newline> {<coverage-line>}
 
-<coverage-line> ::= <subcatch-name> {<landuse-name>
-<fraction>} <newline>
+<coverage-line> ::= <subcatch-name> {<landuse-name> <fraction>} <newline>
 
 ;; fractions for a subcatchment must sum to 1.0
 ```
@@ -865,11 +809,9 @@ User-defined treatment functions for nodes. Expressions can reference
 pollutant concentrations and hydraulic variables.
 
 ```bnf
-<treatment-section> ::= '[TREATMENT]' <newline>
-{<treatment-line>}
+<treatment-section> ::= '[TREATMENT]' <newline> {<treatment-line>}
 
-<treatment-line> ::= <node-name> <pollutant-name> '='
-<expression> <newline>
+<treatment-line> ::= <node-name> <pollutant-name> '=' <expression> <newline>
 
 ;; expression variables:
 
@@ -935,13 +877,11 @@ type on the first line, followed by data point lines.
 ```bnf
 <curves-section> ::= '[CURVES]' <newline> {<curve-block>}
 
-<curve-block> ::= <curve-name> <curve-type> <x> <y>
-<newline>
+<curve-block> ::= <curve-name> <curve-type> <x> <y> <newline>
 
 {<curve-name> <x> <y> <newline>}
 
-<curve-type> ::= 'STORAGE' | 'SHAPE' | 'DIVERSION' |
-'TIDAL'
+<curve-type> ::= 'STORAGE' | 'SHAPE' | 'DIVERSION' | 'TIDAL'
 
 | 'PUMP1' | 'PUMP2' | 'PUMP3' | 'PUMP4'
 
@@ -963,23 +903,19 @@ time-varying inputs. Values can be given inline or loaded from an
 external file.
 
 ```bnf
-<timeseries-section> ::= '[TIMESERIES]' <newline>
-{<timeseries-block>}
+<timeseries-section> ::= '[TIMESERIES]' <newline> {<timeseries-block>}
 
 ;; Inline absolute date/time format:
 
-<timeseries-block> ::= {<ts-name> <date> <time> <value>
-<newline>}
+<timeseries-block> ::= {<ts-name> <date> <time> <value> <newline>}
 
 ;; Inline relative time format:
 
-<timeseries-block> ::= {<ts-name> <hours> <value>
-<newline>}
+<timeseries-block> ::= {<ts-name> <hours> <value> <newline>}
 
 ;; File reference:
 
-<timeseries-block> ::= <ts-name> 'FILE' <filename>
-<newline>
+<timeseries-block> ::= <ts-name> 'FILE' <filename> <newline>
 
 <hours> ::= <real> ;; hours from simulation start
 ```
@@ -990,8 +926,7 @@ Time patterns of multipliers used with dry weather flow. Each pattern
 type has a fixed number of multipliers.
 
 ```bnf
-<patterns-section> ::= '[PATTERNS]' <newline>
-{<pattern-block>}
+<patterns-section> ::= '[PATTERNS]' <newline> {<pattern-block>}
 
 <pattern-block> ::= <pattern-name> <pattern-type>
 
@@ -1017,8 +952,7 @@ simulation. Each rule evaluates a condition and applies an action when
 true.
 
 ```bnf
-<controls-section> ::= '[CONTROLS]' <newline>
-{<rule-block>}
+<controls-section> ::= '[CONTROLS]' <newline> {<rule-block>}
 
 <rule-block> ::= 'RULE' <rule-id> <newline>
 
@@ -1040,14 +974,11 @@ true.
 
 <action> ::= <object> <attribute> '=' <value>
 
-<relop> ::= '=' | '<>' | '<' | '>' | '<=' |
-'>='
+<relop> ::= '=' | '<>' | '<' | '>' | '<=' | '>='
 
-<object> ::= 'NODE' <name> | 'LINK' <name> |
-'SIMULATION'
+<object> ::= 'NODE' <name> | 'LINK' <name> | 'SIMULATION'
 
-<attribute> ::= 'DEPTH' | 'HEAD' | 'FLOW' | 'STATUS' |
-'SETTING'
+<attribute> ::= 'DEPTH' | 'HEAD' | 'FLOW' | 'STATUS' | 'SETTING'
 
 | 'TIME' | 'DATE' | 'CLOCKTIME' | 'DAY' | 'MONTH'
 ```
@@ -1075,8 +1006,7 @@ X-Y coordinates of all nodes (junctions, outfalls, dividers, storage
 units).
 
 ```bnf
-<coordinates-section> ::= '[COORDINATES]' <newline>
-{<coord-line>}
+<coordinates-section> ::= '[COORDINATES]' <newline> {<coord-line>}
 
 <coord-line> ::= <node-name> <x> <y> <newline>
 
@@ -1091,8 +1021,7 @@ Interior vertex points for conduit links. Only conduits with bends or
 curves require entries.
 
 ```bnf
-<vertices-section> ::= '[VERTICES]' <newline>
-{<vertex-line>}
+<vertices-section> ::= '[VERTICES]' <newline> {<vertex-line>}
 
 <vertex-line> ::= <link-name> <x> <y> <newline>
 
@@ -1105,8 +1034,7 @@ Boundary polygon vertices for subcatchments. Multiple lines per
 subcatchment define the polygon.
 
 ```bnf
-<polygons-section> ::= '[POLYGONS]' <newline>
-{<polygon-line>}
+<polygons-section> ::= '[POLYGONS]' <newline> {<polygon-line>}
 
 <polygon-line> ::= <subcatch-name> <x> <y> <newline>
 
@@ -1168,20 +1096,15 @@ analysis. Each hydrograph set contains short-, medium-, and long-term
 response triangles.
 
 ```bnf
-<hydrographs-section> ::= '[HYDROGRAPHS]' <newline>
-{<hydrograph-block>}
+<hydrographs-section> ::= '[HYDROGRAPHS]' <newline> {<hydrograph-block>}
 
-<hydrograph-block> ::= <uh-group-name> <raingage-name>
-<newline>
+<hydrograph-block> ::= <uh-group-name> <raingage-name> <newline>
 
 {<uh-group-name> <month> <response>
 
-<R> <T> <K> [<IA-max>] [<IA-rec>] [<IA-ini>]
+<R> <T> <K> [<IA-max>] [<IA-rec>] [<IA-ini>] <newline>}
 
-<newline>}
-
-<month> ::= 'ALL' | 'JAN' | 'FEB' | 'MAR' | 'APR' |
-'MAY' | 'JUN'
+<month> ::= 'ALL' | 'JAN' | 'FEB' | 'MAR' | 'APR' | 'MAY' | 'JUN'
 
 | 'JUL' | 'AUG' | 'SEP' | 'OCT' | 'NOV' | 'DEC'
 
@@ -1202,8 +1125,7 @@ contributing sewershed area.
 ```bnf
 <rdii-section> ::= '[RDII]' <newline> {<rdii-line>}
 
-<rdii-line> ::= <node-name> <uh-group-name> <sewer-area>
-<newline>
+<rdii-line> ::= <node-name> <uh-group-name> <sewer-area> <newline>
 
 <sewer-area> ::= <real> ;; area of sewershed (acres or ha)
 ```
@@ -1214,11 +1136,9 @@ Initial pollutant buildup on subcatchment surfaces at the start of
 simulation.
 
 ```bnf
-<loadings-section> ::= '[LOADINGS]' <newline>
-{<loading-line>}
+<loadings-section> ::= '[LOADINGS]' <newline> {<loading-line>}
 
-<loading-line> ::= <subcatch-name> {<pollutant-name>
-<loading>} <newline>
+<loading-line> ::= <subcatch-name> {<pollutant-name> <loading>} <newline>
 
 <loading> ::= <real> ;; initial buildup (lbs/acre or kg/ha)
 ```
@@ -1231,8 +1151,7 @@ Evaporation data and its source. Only one evaporation type is active at
 a time.
 
 ```bnf
-<evaporation-section> ::= '[EVAPORATION]' <newline>
-{<evap-line>}
+<evaporation-section> ::= '[EVAPORATION]' <newline> {<evap-line>}
 
 <evap-line> ::= <evap-type> <evap-params> <newline>
 
@@ -1258,8 +1177,7 @@ a time.
 Air temperature data for snowmelt computations.
 
 ```bnf
-<temperature-section> ::= '[TEMPERATURE]' <newline>
-{<temp-line>}
+<temperature-section> ::= '[TEMPERATURE]' <newline> {<temp-line>}
 
 <temp-line> ::= <temp-type> <temp-params> <newline>
 
@@ -1271,9 +1189,7 @@ Air temperature data for snowmelt computations.
 
 | 'WINDSPEED' 'FILE'
 
-| 'SNOWMELT' <temp-base> <atm-heat>
-
-<neg-heat> <rain-melt>
+| 'SNOWMELT' <temp-base> <atm-heat> <neg-heat> <rain-melt>
 
 | 'ADC' 'IMPERVIOUS' {<fraction>}
 
@@ -1314,8 +1230,7 @@ Background image for the map display window. Not used by the solver.
 Defines profile views of the network for display purposes only.
 
 ```bnf
-<profile-section> ::= '[PROFILE]' <newline>
-{<profile-line>}
+<profile-section> ::= '[PROFILE]' <newline> {<profile-line>}
 
 <profile-line> ::= <quoted-name> {<node-name>} <newline>
 ```
@@ -1323,8 +1238,7 @@ Defines profile views of the network for display purposes only.
 **Appendix A: Token Primitives**
 
 ```bnf
-<name> ::= <letter> {<letter> | <digit> | '_' | '-'
-| '.'}
+<name> ::= <letter> {<letter> | <digit> | '_' | '-' | '.'}
 
 ;; max 31 characters, case-insensitive
 
@@ -1406,4 +1320,3 @@ Quick reference of all sections and their primary purpose.
 | [TAGS]         | Metadata   | Object categorization tags                  |
 | [BACKDROP]     | Metadata   | Background map image                        |
 | [PROFILE]      | Metadata   | Profile view definitions                    |
-
