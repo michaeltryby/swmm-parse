@@ -1,6 +1,12 @@
 #
 #  to_input_file.py
 #
+#  Created: Apr 25, 2024
+#  Updated: Mar 25, 2026
+#
+#  Author:  Michael E. Tryby
+#           US EPA - ORD/CESER
+#
 
 from lark import Token, Tree, Visitor
 
@@ -17,10 +23,8 @@ class ToInputFile(Visitor):
         return NS.join(self._buffer)
 
     @staticmethod
-    def _token_value(obj):
-        if isinstance(obj, Token):
-            return obj.value
-        return str(obj)
+    def _is_header_token(tok):
+        return isinstance(tok, Token) and tok.type.endswith("_HEADER")
 
     @staticmethod
     def _is_newline_token(tok):
@@ -34,47 +38,32 @@ class ToInputFile(Visitor):
         def walk(obj):
             if isinstance(obj, Token):
                 out.append(obj)
-                return
-            if isinstance(obj, Tree):
+            elif isinstance(obj, Tree):
                 for ch in obj.children:
                     walk(ch)
-                return
 
         walk(node)
         return out
 
     def __default__(self, tree):
-        data = str(tree.data)
+        first = tree.children[0] if tree.children else None
 
-        # Section nodes: *_sec
-        if data.endswith("_sec"):
+        # Section: first child is a _HEADER token
+        if isinstance(first, Token) and self._is_header_token(first):
             if self._buffer:
                 self._buffer.append(NL)
-
-            header = None
-            for tok in self._flatten_tokens(tree):
-                v = self._token_value(tok)
-                if v.startswith("[") and v.endswith("]"):
-                    header = v
-                    break
-
-            if header is None:
-                # fallback only
-                header = f"[{data[:-4].upper()}]"
-
-            self._buffer.append(header)
+            self._buffer.append(first.value)
             self._buffer.append(NL)
             return
 
         # Record nodes: *_rec
-        if data.endswith("_rec"):
-            fields = []
-            for tok in self._flatten_tokens(tree):
-                if self._is_newline_token(tok):
-                    continue
-                fields.append(self._token_value(tok))
+        if str(tree.data).endswith("_rec"):
+            fields = [
+                tok.value
+                for tok in self._flatten_tokens(tree)
+                if not self._is_newline_token(tok) and not self._is_header_token(tok)
+            ]
 
             if fields:
                 self._buffer.append(SP.join(fields))
                 self._buffer.append(NL)
-            return

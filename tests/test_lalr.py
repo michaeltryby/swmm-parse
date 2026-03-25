@@ -122,6 +122,49 @@ def test_evaporation_variants(variant_name, section_text):
     print(tree_s)
 
 
+XSECTIONS_CASES = [
+    ("CIRCULAR", "[XSECTIONS]\nC1 CIRCULAR 1.0\n"),
+    ("FORCE_MAIN", "[XSECTIONS]\nC1 FORCE_MAIN 1.0 130\n"),
+    ("FILLED_CIRCULAR", "[XSECTIONS]\nC1 FILLED_CIRCULAR 1.0 0.5\n"),
+    ("RECT_CLOSED", "[XSECTIONS]\nC1 RECT_CLOSED 1.0 2.0\n"),
+    ("RECT_OPEN", "[XSECTIONS]\nC1 RECT_OPEN 1.0 2.0\n"),
+    ("TRAPEZOIDAL", "[XSECTIONS]\nC1 TRAPEZOIDAL 1.0 0.5 1.0 1.0\n"),
+    ("TRIANGULAR", "[XSECTIONS]\nC1 TRIANGULAR 1.0 2.0\n"),
+    ("HORIZ_ELLIPSE", "[XSECTIONS]\nC1 HORIZ_ELLIPSE 1.0 2.0\n"),
+    ("VERT_ELLIPSE", "[XSECTIONS]\nC1 VERT_ELLIPSE 1.0 2.0\n"),
+    ("ARCH", "[XSECTIONS]\nC1 ARCH 1.0 2.0\n"),
+    ("PARABOLIC", "[XSECTIONS]\nC1 PARABOLIC 1.5 2.0\n"),
+    ("POWER", "[XSECTIONS]\nC1 POWER 1.0 2.0 1.5\n"),
+    ("RECT_TRIANGULAR", "[XSECTIONS]\nC1 RECT_TRIANGULAR 1.0 2.0 0.5\n"),
+    ("RECT_ROUND", "[XSECTIONS]\nC1 RECT_ROUND 1.0 2.0 0.25\n"),
+    ("MODBASKETHANDLE", "[XSECTIONS]\nC1 MODBASKETHANDLE 1.0 0.5 0.25\n"),
+    ("EGG", "[XSECTIONS]\nC1 EGG 1.0\n"),
+    ("HORSESHOE", "[XSECTIONS]\nC1 HORSESHOE 1.0\n"),
+    ("GOTHIC", "[XSECTIONS]\nC1 GOTHIC 1.0\n"),
+    ("CATENARY", "[XSECTIONS]\nC1 CATENARY 1.0\n"),
+    ("SEMIELLIPTICAL", "[XSECTIONS]\nC1 SEMIELLIPTICAL 1.0\n"),
+    ("BASKETHANDLE", "[XSECTIONS]\nC1 BASKETHANDLE 1.0\n"),
+    ("SEMICIRCULAR", "[XSECTIONS]\nC1 SEMICIRCULAR 1.0\n"),
+    ("IRREGULAR", "[XSECTIONS]\nC1 IRREGULAR TRANSECT1\n"),
+    ("CUSTOM", "[XSECTIONS]\nC1 CUSTOM CURVE1 1.0\n"),
+    ("DUMMY", "[XSECTIONS]\nC1 DUMMY\n"),
+]
+
+
+@pytest.mark.parametrize("variant_name, section_text", XSECTIONS_CASES)
+def test_xsections_variants(variant_name, section_text):
+    parser = Lark.open_from_package(
+        "swmm.parse", "input-lalr.lark", ("grammars",), parser="lalr"
+    )
+
+    tree = parser.parse(section_text)
+
+    assert tree is not None, f"XSECTIONS variant {variant_name} did not parse"
+
+    tree_s = str(tree)
+    assert variant_name in tree_s, f"{variant_name} missing from parse tree output"
+
+
 def test_lalr():
 
     # Read expected tree from file
@@ -139,5 +182,5 @@ def test_lalr():
 
     output = str(file_tree).strip()
 
-    # print(output)
+    print(output)
     assert expected == output

@@ -9,7 +9,7 @@
 %ignore     _COMMENT _NL
 
 
-start       : _NL* section+
+start       : _NL* section*
 
 section     : title_sec
             | options_sec
@@ -66,298 +66,401 @@ section     : title_sec
 //  TITLE
 // =========================================================================
 
-title_sec   : "[TITLE]" _NL title_rec*
-title_rec   : TOKEN+ _NL
+title_sec    : TITLE_HEADER _NL title_rec*
+title_rec    : TOKEN+ _NL
+
+TITLE_HEADER : "[TITLE]"
 
 // =========================================================================
 //  OPTIONS  — key value pairs
 // =========================================================================
 
-options_sec : "[OPTIONS]" _NL option_rec*
+options_sec : OPTIONS_HEADER _NL option_rec*
 option_rec  : NAME VALUE _NL
+
+OPTIONS_HEADER : "[OPTIONS]"
 
 // =========================================================================
 //  JUNCTIONS
 //    Name  Elevation  [MaxDepth  InitDepth  SurDepth  Aponded]
 // =========================================================================
 
-junctions_sec : "[JUNCTIONS]" _NL junction_rec*
+junctions_sec : JUNCTIONS_HEADER _NL junction_rec*
 junction_rec  : NAME NUMBER NUMBER? NUMBER? NUMBER? NUMBER? _NL
+
+JUNCTIONS_HEADER : "[JUNCTIONS]"
 
 // =========================================================================
 //  OUTFALLS
 //    Name  Elev  Type  [StageData]  [Gated]  [RouteTo]
 // =========================================================================
 
-outfalls_sec : "[OUTFALLS]" _NL outfall_rec*
+outfalls_sec : OUTFALLS_HEADER _NL outfall_rec*
 outfall_rec  : NAME NUMBER NAME TOKEN? TOKEN? TOKEN? _NL
+
+OUTFALLS_HEADER : "[OUTFALLS]"
 
 // =========================================================================
 //  DIVIDERS
 //    Name  Elev  DivLink  Type  Params...  [MaxDepth InitDepth SurDepth Aponded]
 // =========================================================================
 
-dividers_sec : "[DIVIDERS]" _NL divider_rec*
+dividers_sec : DIVIDERS_HEADER _NL divider_rec*
 divider_rec  : NAME NUMBER NAME NAME TOKEN* _NL
+
+DIVIDERS_HEADER : "[DIVIDERS]"
 
 // =========================================================================
 //  STORAGE
 //    Name  Elev  MaxDepth  InitDepth  CurveType  Params...  [Ponded Fevap]
 // =========================================================================
 
-storage_sec  : "[STORAGE]" _NL storage_rec*
+storage_sec  : STORAGE_HEADER _NL storage_rec*
 storage_rec  : NAME NUMBER NUMBER NUMBER NAME TOKEN* _NL
+
+STORAGE_HEADER : "[STORAGE]"
 
 // =========================================================================
 //  CONDUITS
 //    Name  From  To  Length  Roughness  InOffset  OutOffset  [InitFlow MaxFlow]
 // =========================================================================
 
-conduits_sec : "[CONDUITS]" _NL conduit_rec*
+conduits_sec : CONDUITS_HEADER _NL conduit_rec*
 conduit_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER? NUMBER? _NL
+
+CONDUITS_HEADER : "[CONDUITS]"
 
 // =========================================================================
 //  PUMPS
 //    Name  From  To  Curve  [Status  Startup  Shutoff]
 // =========================================================================
 
-pumps_sec    : "[PUMPS]" _NL pump_rec*
+pumps_sec    : PUMPS_HEADER _NL pump_rec*
 pump_rec     : NAME NAME NAME NAME TOKEN? NUMBER? NUMBER? _NL
+
+PUMPS_HEADER : "[PUMPS]"
 
 // =========================================================================
 //  ORIFICES
 //    Name  From  To  Type  Offset  Cd  [Gated  CloseTime]
 // =========================================================================
 
-orifices_sec : "[ORIFICES]" _NL orifice_rec*
+orifices_sec : ORIFICES_HEADER _NL orifice_rec*
 orifice_rec  : NAME NAME NAME NAME NUMBER NUMBER TOKEN? NUMBER? _NL
+
+ORIFICES_HEADER : "[ORIFICES]"
 
 // =========================================================================
 //  WEIRS
 //     Name  From  To  Type  CrestHeight  Cd  [Gated EndCon Cd2 Surcharge RoadWidth RoadSurf]
 // =========================================================================
 
-weirs_sec    : "[WEIRS]" _NL weir_rec*
+weirs_sec    : WEIRS_HEADER _NL weir_rec*
 weir_rec     : NAME NAME NAME NAME NUMBER NUMBER TOKEN* _NL
+
+WEIRS_HEADER : "[WEIRS]"
 
 // =========================================================================
 //  OUTLETS
 //     Name  From  To  Offset  Type  Params...  [Gated]
 // =========================================================================
 
-outlets_sec  : "[OUTLETS]" _NL outlet_rec*
+outlets_sec  : OUTLETS_HEADER _NL outlet_rec*
 outlet_rec   : NAME NAME NAME NUMBER NAME TOKEN* _NL
+
+OUTLETS_HEADER : "[OUTLETS]"
 
 // =========================================================================
 //  XSECTIONS
 //     Link  Shape  Geom1  [Geom2 Geom3 Geom4]  [Barrels]  [Culvert]
+//
+//    Variants:
+//    - IRREGULAR: geom1 is a transect name from [TRANSECTS]
+//    - CUSTOM:    geom1 is a shape curve name from [CURVES]
+//    - all other shapes: geom1-4 are numbers
+//
+//    geom1 type collision (NAME vs NUMBER) makes full typed variants
+//    LALR-unsafe; use generic_rec for the free-form geometry tail.
 // =========================================================================
 
-xsections_sec : "[XSECTIONS]" _NL xsection_rec*
-xsection_rec  : NAME NAME TOKEN* _NL
+xsections_sec : XSECT_HEADER _NL xsection_var*
+
+xsection_var : xsection_irregular_rec
+             | xsection_custom_rec
+             | xsection_dummy_rec
+             | xsection_rec
+
+// IRREGULAR: geom1 is a transect name
+xsection_irregular_rec : NAME XSECT_IRREGULAR NAME NUMBER? _NL
+
+// CUSTOM: geom1 is a curve name
+xsection_custom_rec    : NAME XSECT_CUSTOM NAME NUMBER? NUMBER? _NL
+
+// DUMMY: name keyword
+xsection_dummy_rec     : NAME XSECT_DUMMY _NL
+
+// All standard shapes: geom1-4 are numbers
+xsection_rec           : NAME NAME NUMBER NUMBER? NUMBER? NUMBER? NUMBER? NUMBER? _NL
+
+XSECT_HEADER    : "[XSECTIONS]"
+XSECT_IRREGULAR : "IRREGULAR"
+XSECT_CUSTOM    : "CUSTOM"
+XSECT_DUMMY     : "DUMMY"
 
 // =========================================================================
 //  TRANSECTS  — multi-keyword sub-lines (NC / X1 / GR)
 // =========================================================================
 
-transects_sec : "[TRANSECTS]" _NL generic_rec*
+transects_sec : TRAMSECTS_HEADER _NL generic_rec*
 // transect_rec  : generic_rec
+
+TRAMSECTS_HEADER : "[TRANSECTS]"
 
 // =========================================================================
 //  LOSSES
 //     Conduit  [Kin  Kout  Kavg  FlapGate  Seepage]
 // =========================================================================
 
-losses_sec   : "[LOSSES]" _NL loss_rec*
+losses_sec   : LOSSES_HEADER _NL loss_rec*
 loss_rec     : NAME NUMBER? NUMBER? NUMBER? TOKEN? NUMBER? _NL
+
+LOSSES_HEADER : "[LOSSES]"
 
 // =========================================================================
 //  RAINGAGES
 //     Name  Type  Interval  SCF  Source...
 // =========================================================================
 
-raingages_sec : "[RAINGAGES]" _NL raingage_rec*
+raingages_sec : RAINGAGES_HEADER _NL raingage_rec*
 raingage_rec  : NAME NAME TIME NUMBER NAME TOKEN* _NL
+
+RAINGAGES_HEADER : "[RAINGAGES]"
 
 // =========================================================================
 //  SUBCATCHMENTS
 //     Name  Gage  Outlet  Area  Imperv  Width  Slope  [CurbLen  SnowPack]
 // =========================================================================
 
-subcatchments_sec : "[SUBCATCHMENTS]" _NL subcatchment_rec*
+subcatchments_sec : SUBCATC_HEADER _NL subcatchment_rec*
 subcatchment_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER? NAME? _NL
+
+SUBCATC_HEADER    : "[SUBCATCHMENTS]"
 
 // =========================================================================
 //  SUBAREAS
 //     Subcatch  Nimp  Nperv  DSimp  DSperv  PctZero  [RouteTo  PctRouted]
 // =========================================================================
 
-subareas_sec : "[SUBAREAS]" _NL subarea_rec*
+subareas_sec : SUBAREAS_HEADER _NL subarea_rec*
 subarea_rec  : NAME NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN? NUMBER? _NL
+
+SUBAREAS_HEADER : "[SUBAREAS]"
 
 // =========================================================================
 //  INFILTRATION
 // =========================================================================
 
-infiltration_sec : "[INFILTRATION]" _NL generic_rec*
+infiltration_sec : INFIL_HEADER _NL generic_rec*
 // infiltration_rec : generic_rec
+
+INFIL_HEADER    : "[INFILTRATION]"
 
 // =========================================================================
 //  LID_CONTROLS  — multi-line blocks with varying layer keywords
 // =========================================================================
 
-lid_controls_sec : "[LID_CONTROLS]" _NL generic_rec*
+lid_controls_sec : LID_CONTROLS_HEADER _NL generic_rec*
 // lid_control_rec  : generic_rec
+
+LID_CONTROLS_HEADER : "[LID_CONTROLS]"
 
 // =========================================================================
 //  LID_USAGE
 //     Subcatch  LID  Number  Area  Width  InitSat  FromImperv  ToPerv  [...]
 // =========================================================================
 
-lid_usage_sec : "[LID_USAGE]" _NL lid_usage_rec*
+lid_usage_sec : LID_USAGE_HEADER _NL lid_usage_rec*
 lid_usage_rec : NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN TOKEN* _NL
+
+LID_USAGE_HEADER : "[LID_USAGE]"
 
 // =========================================================================
 //  AQUIFERS
 //     Name  Por  WP  FC  Ksat  Kslope  Tslope  ETloss  ETdepth  Tbot  Psi  [...]
 // =========================================================================
 
-aquifers_sec : "[AQUIFERS]" _NL aquifer_rec*
+aquifers_sec : AQUIFERS_HEADER _NL aquifer_rec*
 aquifer_rec  : NAME NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER? NUMBER? _NL
+
+AQUIFERS_HEADER : "[AQUIFERS]"
 
 // =========================================================================
 //  GROUNDWATER
 //     Subcatch  Aquifer  Node  Esurf  A1  B1  A2  B2  A3  DSW  [...]
 // =========================================================================
 
-groundwater_sec : "[GROUNDWATER]" _NL groundwater_rec*
+groundwater_sec : GROUNDWATER_HEADER _NL groundwater_rec*
 groundwater_rec : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN* _NL
+
+GROUNDWATER_HEADER : "[GROUNDWATER]"
 
 // =========================================================================
 //  SNOWPACKS  — 4 fixed sub-line types per pack name
 // =========================================================================
 
-snowpacks_sec : "[SNOWPACKS]" _NL generic_rec*
+snowpacks_sec : SNOWPACKS_HEADER _NL generic_rec*
 // snowpack_rec  : generic_rec
+
+SNOWPACKS_HEADER : "[SNOWPACKS]"
 
 // =========================================================================
 //  POLLUTANTS
 //     Name  Units  [RainConc GWConc RDIIConc Decay SnowFlag CoPollut CoFrac Cdwf Cinit]
 // =========================================================================
 
-pollutants_sec : "[POLLUTANTS]" _NL pollutant_rec*
+pollutants_sec : POLLUTANTS_HEADER _NL pollutant_rec*
 pollutant_rec  : NAME NAME TOKEN* _NL
+
+POLLUTANTS_HEADER : "[POLLUTANTS]"
 
 // =========================================================================
 //  LANDUSES
 //     Name  [SweepInterval  Availability  LastSwept]
 // =========================================================================
 
-landuses_sec : "[LANDUSES]" _NL landuse_rec*
+landuses_sec : LANDUSES_HEADER _NL landuse_rec*
 landuse_rec  : NAME NUMBER? NUMBER? NUMBER? _NL
+
+LANDUSES_HEADER : "[LANDUSES]"
 
 // =========================================================================
 //  BUILDUP
 //     LandUse  Pollutant  FuncType  C1  C2  C3  Normalizer
 // =========================================================================
 
-buildup_sec  : "[BUILDUP]" _NL buildup_rec*
+buildup_sec  : BUILDUP_HEADER _NL buildup_rec*
 buildup_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NAME _NL
+
+BUILDUP_HEADER : "[BUILDUP]"
 
 // =========================================================================
 //  WASHOFF
 //     LandUse  Pollutant  FuncType  C1  C2  SweepEff  BMPEff
 // =========================================================================
 
-washoff_sec  : "[WASHOFF]" _NL washoff_rec*
+washoff_sec  : WASHOFF_HEADER _NL washoff_rec*
 washoff_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER _NL
+
+WASHOFF_HEADER : "[WASHOFF]"
 
 // =========================================================================
 //  COVERAGES
 //     Subcatch  {LandUse  Fraction}...
 // =========================================================================
 
-coverages_sec : "[COVERAGES]" _NL coverage_rec*
+coverages_sec : COVERAGES_HEADER _NL coverage_rec*
 coverage_rec  : NAME TOKEN* _NL
+
+COVERAGES_HEADER : "[COVERAGES]"
 
 // =========================================================================
 //  TREATMENT
 //     Node  Pollutant = Expression
 // =========================================================================
 
-treatment_sec : "[TREATMENT]" _NL treatment_rec*
+treatment_sec : TREATMENT_HEADER _NL treatment_rec*
 treatment_rec : NAME NAME "=" TOKEN+ _NL
+
+TREATMENT_HEADER : "[TREATMENT]"
 
 // =========================================================================
 //  INFLOWS
 //     Node  (FLOW|Pollutant)  TimeSeries  Type  [UnitsFactor ScaleFactor Baseline Pattern]
 // =========================================================================
 
-inflows_sec  : "[INFLOWS]" _NL inflow_rec*
+inflows_sec  : INFLOWS_HEADER _NL inflow_rec*
 inflow_rec   : NAME NAME NAME NAME TOKEN* _NL
+
+INFLOWS_HEADER : "[INFLOWS]"
 
 // =========================================================================
 //  DWF
 //     Node  (FLOW|Pollutant)  AvgValue  [Pat1 Pat2 Pat3 Pat4]
 // =========================================================================
 
-dwf_sec      : "[DWF]" _NL dwf_rec*
+dwf_sec      : DWF_HEADER _NL dwf_rec*
 dwf_rec      : NAME NAME NUMBER TOKEN* _NL
+
+DWF_HEADER : "[DWF]"
 
 // =========================================================================
 //  LOADINGS
 //     Subcatch  {Pollutant  Loading}...
 // =========================================================================
 
-loadings_sec : "[LOADINGS]" _NL loading_rec*
+loadings_sec : LOADINGS_HEADER _NL loading_rec*
 loading_rec  : NAME TOKEN* _NL
+
+LOADINGS_HEADER : "[LOADINGS]"
 
 // =========================================================================
 //  CURVES
 //     Name  [Type]  X  Y  (type only on first row of each curve)
 // =========================================================================
 
-curves_sec   : "[CURVES]" _NL curve_rec*
+curves_sec   : CURVES_HEADER _NL curve_rec*
 curve_rec    : NAME TOKEN NUMBER NUMBER _NL
+
+CURVES_HEADER : "[CURVES]"
 
 // =========================================================================
 //  TIMESERIES
 //     Name  (Date Time | Hours)  Value    or    Name FILE filename
 // =========================================================================
 
-timeseries_sec : "[TIMESERIES]" _NL timeseries_rec*
+timeseries_sec : TIMESERIES_HEADER _NL timeseries_rec*
 timeseries_rec : NAME (TIME NUMBER)+ _NL
+
+TIMESERIES_HEADER : "[TIMESERIES]"
 
 // =========================================================================
 //  PATTERNS
 //     Name  Type  Multiplier...
 // =========================================================================
 
-patterns_sec : "[PATTERNS]" _NL pattern_rec*
+patterns_sec : PATTERNS_HEADER _NL pattern_rec*
 pattern_rec  : NAME NAME NUMBER+ _NL
+
+PATTERNS_HEADER : "[PATTERNS]"
 
 // =========================================================================
 //  CONTROLS  — free-form rule blocks
 // =========================================================================
 
-controls_sec : "[CONTROLS]" _NL generic_rec*
+controls_sec : CONTROLS_HEADER _NL generic_rec*
 // control_rec  : generic_rec
+
+CONTROLS_HEADER : "[CONTROLS]"
 
 // =========================================================================
 //  HYDROGRAPHS
 //     Name  [Gage | Month Response R T K IA_max IA_rec IA_ini]
 // =========================================================================
 
-hydrographs_sec : "[HYDROGRAPHS]" _NL generic_rec*
+hydrographs_sec : HYDROG_HEADER _NL generic_rec*
 // hydrograph_rec  : generic_rec
+
+HYDROG_HEADER : "[HYDROGRAPHS]"
 
 // =========================================================================
 //  RDII
 //     Node  UHGroup  SewerArea
 // =========================================================================
 
-rdii_sec     : "[RDII]" _NL rdii_rec*
+rdii_sec     : RDII_HEADER _NL rdii_rec*
 rdii_rec     : NAME NAME NUMBER _NL
+
+RDII_HEADER : "[RDII]"
 
 // =========================================================================
 //  EVAPORATION
@@ -380,7 +483,7 @@ evaporation_var      : evap_constant_rec
                      | evap_temperature_rec
                      | evap_file_rec
                      | evap_recovery_rec
-                     | evap_dryonly_rec
+                     | evap_dry_only_rec
 
 evap_constant_rec    : EVAP_CONSTANT NUMBER _NL
 evap_monthly_rec     : EVAP_MONTHLY (NUMBER ~ 12) _NL
@@ -388,7 +491,7 @@ evap_timeseries_rec  : EVAP_TIMESERIES NAME _NL
 evap_temperature_rec : EVAP_TEMPERATURE _NL
 evap_file_rec        : EVAP_FILE TOKEN* _NL
 evap_recovery_rec    : EVAP_RECOVERY TOKEN+ _NL
-evap_dryonly_rec     : EVAP_DRY_ONLY TOKEN _NL
+evap_dry_only_rec     : EVAP_DRY_ONLY TOKEN _NL
 
 EVAP_HEADER          : "[EVAPORATION]"
 EVAP_CONSTANT        : "CONSTANT"
@@ -403,77 +506,97 @@ EVAP_DRY_ONLY        : "DRY_ONLY"
 //  TEMPERATURE
 // =========================================================================
 
-temperature_sec : "[TEMPERATURE]" _NL generic_rec*
+temperature_sec : TEMP_HEADER _NL generic_rec*
 // temperature_rec : generic_rec
+
+TEMP_HEADER : "[TEMPERATURE]"
 
 // =========================================================================
 //  MAP
 // =========================================================================
 
-map_sec      : "[MAP]" _NL generic_rec*
+map_sec      : MAP_HEADER _NL generic_rec*
 // map_rec      : generic_rec
+
+MAP_HEADER   : "[MAP]"
 
 // =========================================================================
 //  COORDINATES
 //     Node  X  Y
 // =========================================================================
 
-coordinates_sec : "[COORDINATES]" _NL coordinate_rec*
+coordinates_sec : COORDS_HEADER _NL coordinate_rec*
 coordinate_rec  : NAME NUMBER NUMBER _NL
+
+COORDS_HEADER : "[COORDINATES]"
 
 // =========================================================================
 //  VERTICES
 //     Link  X  Y
 // =========================================================================
 
-vertices_sec : "[VERTICES]" _NL vertex_rec*
+vertices_sec : VERTICES_HEADER _NL vertex_rec*
 vertex_rec   : NAME NUMBER NUMBER _NL
+
+VERTICES_HEADER : "[VERTICES]"
 
 // =========================================================================
 //  POLYGONS
 //     Subcatch  X  Y
 // =========================================================================
 
-polygons_sec : "[POLYGONS]" _NL polygon_rec*
+polygons_sec : POLYGONS_HEADER _NL polygon_rec*
 polygon_rec  : NAME NUMBER NUMBER _NL
+
+POLYGONS_HEADER : "[POLYGONS]"
 
 // =========================================================================
 //  SYMBOLS
 //     Gage  X  Y
 // =========================================================================
 
-symbols_sec  : "[SYMBOLS]" _NL symbol_rec*
+symbols_sec  : SYMBOLS_HEADER _NL symbol_rec*
 symbol_rec   : NAME NUMBER NUMBER _NL
+
+SYMBOLS_HEADER : "[SYMBOLS]"
 
 // =========================================================================
 //  LABELS
 //     X  Y  Label  [Anchor Font Size Bold Italic]
 // =========================================================================
 
-labels_sec   : "[LABELS]" _NL label_rec*
+labels_sec   : LABELS_HEADER _NL label_rec*
 label_rec    : NUMBER NUMBER QUOTED_STRING TOKEN* _NL
+
+LABELS_HEADER : "[LABELS]"
 
 // =========================================================================
 //  TAGS
 //     ObjectType  Name  Tag
 // =========================================================================
 
-tags_sec     : "[TAGS]" _NL tag_rec*
+tags_sec     : TAGS_HEADER _NL tag_rec*
 tag_rec      : NAME NAME NAME _NL
+
+TAGS_HEADER : "[TAGS]"
 
 // =========================================================================
 //  BACKDROP
 // =========================================================================
 
-backdrop_sec : "[BACKDROP]" _NL generic_rec*
+backdrop_sec : BACKDROP_HEADER _NL generic_rec*
 //backdrop_rec : generic_rec
+
+BACKDROP_HEADER : "[BACKDROP]"
 
 // =========================================================================
 //  PROFILE
 // =========================================================================
 
-profile_sec  : "[PROFILE]" _NL generic_rec*
+profile_sec  : PROFILE_HEADER _NL generic_rec*
 // profile_rec  : generic_rec
+
+PROFILE_HEADER : "[PROFILE]"
 
 // =========================================================================
 // Unknown / future sections — catch-all
@@ -494,12 +617,12 @@ generic_rec  : TOKEN+ _NL
 
 _COMMENT       :  /;[^\n]*/
 
-_EOR           :  (_SP? _NL|_SP? _COMMENT _NL)
+// _EOR           :  (_SP? _NL|_SP? _COMMENT _NL)
 
-KEYWORD         :  /[\/A-Z_]+/
+// KEYWORD         :  /[\/A-Z_]+/
 
 // Section header: [WORD]  (must be first on line, case-insensitive handled externally)
-SECTION_HEADER : /\[[A-Za-z_\/]+\]/
+SECTION_HEADER : "[[A-Za-z_\/]+]"
 
 // Known section headers (declared explicitly so LALR table is deterministic)
 // These shadow SECTION_HEADER in section rules above.
