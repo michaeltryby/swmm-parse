@@ -1,193 +1,494 @@
-//
-//  input-lalr.lark
-//
-//  Created: Apr 25, 2024
-//  Updated:
-//
-//  Author:  Michael E. Tryby
-//           US EPA - ORD/CESER
-//
-//  Notes:   A grammar for the LALR(1) parser
-//
+// =========================================================================
+// Top-level structure
+// =========================================================================
+
+%import common.NEWLINE                                                -> _NL
+%import common.WS_INLINE                                              -> _SP
+
+%ignore     _SP
+%ignore     _COMMENT _NL
+
+
+start       : _NL* section+
+
+section     : title_sec
+            | options_sec
+            | junctions_sec
+            | outfalls_sec
+            | dividers_sec
+            | storage_sec
+            | conduits_sec
+            | pumps_sec
+            | orifices_sec
+            | weirs_sec
+            | outlets_sec
+            | xsections_sec
+            | transects_sec
+            | losses_sec
+            | raingages_sec
+            | subcatchments_sec
+            | subareas_sec
+            | infiltration_sec
+            | lid_controls_sec
+            | lid_usage_sec
+            | aquifers_sec
+            | groundwater_sec
+            | snowpacks_sec
+            | pollutants_sec
+            | landuses_sec
+            | buildup_sec
+            | washoff_sec
+            | coverages_sec
+            | treatment_sec
+            | inflows_sec
+            | dwf_sec
+            | loadings_sec
+            | curves_sec
+            | timeseries_sec
+            | patterns_sec
+            | controls_sec
+            | hydrographs_sec
+            | rdii_sec
+            | evaporation_sec
+            | temperature_sec
+            | map_sec
+            | coordinates_sec
+            | vertices_sec
+            | polygons_sec
+            | symbols_sec
+            | labels_sec
+            | tags_sec
+            | backdrop_sec
+            | profile_sec
+
+
+// =========================================================================
+//  TITLE
+// =========================================================================
+
+title_sec   : "[TITLE]" _NL title_rec*
+title_rec   : TOKEN+ _NL
+
+// =========================================================================
+//  OPTIONS  — key value pairs
+// =========================================================================
+
+options_sec : "[OPTIONS]" _NL option_rec*
+option_rec  : NAME VALUE _NL
+
+// =========================================================================
+//  JUNCTIONS
+//    Name  Elevation  [MaxDepth  InitDepth  SurDepth  Aponded]
+// =========================================================================
+
+junctions_sec : "[JUNCTIONS]" _NL junction_rec*
+junction_rec  : NAME NUMBER NUMBER? NUMBER? NUMBER? NUMBER? _NL
+
+// =========================================================================
+//  OUTFALLS
+//    Name  Elev  Type  [StageData]  [Gated]  [RouteTo]
+// =========================================================================
+
+outfalls_sec : "[OUTFALLS]" _NL outfall_rec*
+outfall_rec  : NAME NUMBER NAME TOKEN? TOKEN? TOKEN? _NL
+
+// =========================================================================
+//  DIVIDERS
+//    Name  Elev  DivLink  Type  Params...  [MaxDepth InitDepth SurDepth Aponded]
+// =========================================================================
+
+dividers_sec : "[DIVIDERS]" _NL divider_rec*
+divider_rec  : NAME NUMBER NAME NAME TOKEN* _NL
 
+// =========================================================================
+//  STORAGE
+//    Name  Elev  MaxDepth  InitDepth  CurveType  Params...  [Ponded Fevap]
+// =========================================================================
 
-%import common.NEWLINE                                                 -> _NL
-%import common.WS_INLINE                                               -> _SP
+storage_sec  : "[STORAGE]" _NL storage_rec*
+storage_rec  : NAME NUMBER NUMBER NUMBER NAME TOKEN* _NL
 
-//%ignore _SP
-%ignore _SP _NL
-%ignore _SP? _COMMENT _NL
+// =========================================================================
+//  CONDUITS
+//    Name  From  To  Length  Roughness  InOffset  OutOffset  [InitFlow MaxFlow]
+// =========================================================================
 
+conduits_sec : "[CONDUITS]" _NL conduit_rec*
+conduit_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER? NUMBER? _NL
 
-start           :  _sections+
+// =========================================================================
+//  PUMPS
+//    Name  From  To  Curve  [Status  Startup  Shutoff]
+// =========================================================================
 
+pumps_sec    : "[PUMPS]" _NL pump_rec*
+pump_rec     : NAME NAME NAME NAME TOKEN? NUMBER? NUMBER? _NL
 
-title           :  word (_SP (word|hyphen))* _EOR                  -> record
+// =========================================================================
+//  ORIFICES
+//    Name  From  To  Type  Offset  Cd  [Gated  CloseTime]
+// =========================================================================
 
-options         :  keyword (_SP (keyword|date|time)) _EOR          -> record
+orifices_sec : "[ORIFICES]" _NL orifice_rec*
+orifice_rec  : NAME NAME NAME NAME NUMBER NUMBER TOKEN? NUMBER? _NL
 
-report          :  keyword _SP (keyword|name (_SP name)*) _EOR     -> record
+// =========================================================================
+//  WEIRS
+//     Name  From  To  Type  CrestHeight  Cd  [Gated EndCon Cd2 Surcharge RoadWidth RoadSurf]
+// =========================================================================
 
-files           :  keyword (_SP (keyword|date|time)) _EOR          -> record
+weirs_sec    : "[WEIRS]" _NL weir_rec*
+weir_rec     : NAME NAME NAME NAME NUMBER NUMBER TOKEN* _NL
 
+// =========================================================================
+//  OUTLETS
+//     Name  From  To  Offset  Type  Params...  [Gated]
+// =========================================================================
 
-raingages       :  name _SP keyword _SP time _SP float _SP keyword _SP name _EOR  -> record
+outlets_sec  : "[OUTLETS]" _NL outlet_rec*
+outlet_rec   : NAME NAME NAME NUMBER NAME TOKEN* _NL
 
-evaporation     :  keyword _SP float _EOR                          -> record
-// TEMPERATURE
-// ADJUSTMENTS
+// =========================================================================
+//  XSECTIONS
+//     Link  Shape  Geom1  [Geom2 Geom3 Geom4]  [Barrels]  [Culvert]
+// =========================================================================
 
+xsections_sec : "[XSECTIONS]" _NL xsection_rec*
+xsection_rec  : NAME NAME TOKEN* _NL
 
+// =========================================================================
+//  TRANSECTS  — multi-keyword sub-lines (NC / X1 / GR)
+// =========================================================================
 
-subcatchments   :  name (_SP name)~2 _SP integer _SP float (_SP float)~2 _EOR     -> record
+transects_sec : "[TRANSECTS]" _NL transect_rec*
+transect_rec  : generic_rec
 
-subareas        :  name _SP float (_SP float)~4 _SP keyword _EOR   -> record
+// =========================================================================
+//  LOSSES
+//     Conduit  [Kin  Kout  Kavg  FlapGate  Seepage]
+// =========================================================================
 
-infiltration    :  name _SP float (_SP float)~2 _EOR               -> record
+losses_sec   : "[LOSSES]" _NL loss_rec*
+loss_rec     : NAME NUMBER? NUMBER? NUMBER? TOKEN? NUMBER? _NL
 
-// LID_CONTROLS
-// LID_USAGE
+// =========================================================================
+//  RAINGAGES
+//     Name  Type  Interval  SCF  Source...
+// =========================================================================
 
+raingages_sec : "[RAINGAGES]" _NL raingage_rec*
+raingage_rec  : NAME NAME TIME NUMBER NAME TOKEN* _NL
 
-// AQUIFERS
-// GROUNDWATER
-// GWF
-// SNOWPACK
+// =========================================================================
+//  SUBCATCHMENTS
+//     Name  Gage  Outlet  Area  Imperv  Width  Slope  [CurbLen  SnowPack]
+// =========================================================================
 
+subcatchments_sec : "[SUBCATCHMENTS]" _NL subcatchment_rec*
+subcatchment_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER? NAME? _NL
 
+// =========================================================================
+//  SUBAREAS
+//     Subcatch  Nimp  Nperv  DSimp  DSperv  PctZero  [RouteTo  PctRouted]
+// =========================================================================
 
-junctions       :  (name _SP float _EOR
-                |  name (_SP float)~3 (_SP integer)~2 _EOR)        -> record
+subareas_sec : "[SUBAREAS]" _NL subarea_rec*
+subarea_rec  : NAME NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN? NUMBER? _NL
 
-// outfalls       :  name _SP float (_SP keyword)~2 _EOR         -> record
+// =========================================================================
+//  INFILTRATION  — fields depend on model; use generic
+// =========================================================================
 
-dividers        :  name _SP float _SP name _SP keyword _SP float _EOR               -> record
+infiltration_sec : "[INFILTRATION]" _NL infiltration_rec*
+infiltration_rec : generic_rec
 
-// storage        :  name (_SP float)~3 _SP keyword _SP name (_SP integer)~2 _EOR  -> record
+// =========================================================================
+//  LID_CONTROLS  — multi-line blocks with varying layer keywords
+// =========================================================================
 
+lid_controls_sec : "[LID_CONTROLS]" _NL lid_control_rec*
+lid_control_rec  : generic_rec
 
+// =========================================================================
+//  LID_USAGE
+//     Subcatch  LID  Number  Area  Width  InitSat  FromImperv  ToPerv  [...]
+// =========================================================================
 
-conduits        :  name (_SP name)~2 (_SP (integer|float))~5 _EOR -> record
+lid_usage_sec : "[LID_USAGE]" _NL lid_usage_rec*
+lid_usage_rec : NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN TOKEN* _NL
 
-// pumps          :  name (_SP name)~3 _EOR                      -> record
+// =========================================================================
+//  AQUIFERS
+//     Name  Por  WP  FC  Ksat  Kslope  Tslope  ETloss  ETdepth  Tbot  Psi  [...]
+// =========================================================================
 
-// orifices       :  name (_SP name)~2 _SP keyword (_SP float)~2 (_SP keyword _SP time)? _EOR  -> record
+aquifers_sec : "[AQUIFERS]" _NL aquifer_rec*
+aquifer_rec  : NAME NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER? NUMBER? _NL
 
-// weirs          :  name (_SP name)~2 _SP keyword (_SP float)~2 _SP keyword (_SP integer)~2 _EOR   -> record
+// =========================================================================
+//  GROUNDWATER
+//     Subcatch  Aquifer  Node  Esurf  A1  B1  A2  B2  A3  DSW  [...]
+// =========================================================================
 
-// OUTLETS
-// outlets        :  name (_SP name)~2 _SP float _SP keyword (_SP float)~2 _SP keyword _EOR    -> record
+groundwater_sec : "[GROUNDWATER]" _NL groundwater_rec*
+groundwater_rec : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN* _NL
 
+// =========================================================================
+//  SNOWPACKS  — 4 fixed sub-line types per pack name
+// =========================================================================
 
-xsections       :  name _SP keyword (_SP (integer|float))~4 _EOR -> record
-// TRANSECTS
-// LOSSES
+snowpacks_sec : "[SNOWPACKS]" _NL snowpack_rec*
+snowpack_rec  : generic_rec
 
-// controls       :  keyword (_SP (keyword | name | (operator _SP (integer | float))))* _EOR -> record
+// =========================================================================
+//  POLLUTANTS
+//     Name  Units  [RainConc GWConc RDIIConc Decay SnowFlag CoPollut CoFrac Cdwf Cinit]
+// =========================================================================
 
+pollutants_sec : "[POLLUTANTS]" _NL pollutant_rec*
+pollutant_rec  : NAME NAME TOKEN* _NL
 
-pollutants      :  name _SP keyword (_SP integer)~4 (_SP keyword _SP name _SP float)? _EOR -> record
+// =========================================================================
+//  LANDUSES
+//     Name  [SweepInterval  Availability  LastSwept]
+// =========================================================================
 
-landuses        :  name _EOR  -> record
+landuses_sec : "[LANDUSES]" _NL landuse_rec*
+landuse_rec  : NAME NUMBER? NUMBER? NUMBER? _NL
 
-coverages       :  name (_SP name _SP integer)~2 _EOR  -> record
-// LOADINGS
-// BUILDUP
-washoff         :  name _SP name _SP keyword (_SP (integer|float))~4 _EOR -> record
-// TREATMENT
+// =========================================================================
+//  BUILDUP
+//     LandUse  Pollutant  FuncType  C1  C2  C3  Normalizer
+// =========================================================================
 
+buildup_sec  : "[BUILDUP]" _NL buildup_rec*
+buildup_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NAME _NL
 
-// INFLOWS
-// DWF
-// RDII
-// HYDROGRAPHS
+// =========================================================================
+//  WASHOFF
+//     LandUse  Pollutant  FuncType  C1  C2  SweepEff  BMPEff
+// =========================================================================
 
+washoff_sec  : "[WASHOFF]" _NL washoff_rec*
+washoff_rec  : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER _NL
 
-// CURVES
-timeseries      :  name (_SP time _SP float)+ _EOR -> record
+// =========================================================================
+//  COVERAGES
+//     Subcatch  {LandUse  Fraction}...
+// =========================================================================
 
-// patterns       :  name (_SP keyword)? (_SP float)+ _EOR -> record
+coverages_sec : "[COVERAGES]" _NL coverage_rec*
+coverage_rec  : NAME TOKEN* _NL
 
+// =========================================================================
+//  TREATMENT
+//     Node  Pollutant = Expression
+// =========================================================================
 
+treatment_sec : "[TREATMENT]" _NL treatment_rec*
+treatment_rec : NAME NAME "=" TOKEN+ _NL
 
-section{arg1, arg2}:  "[" arg1 "]" _EOR arg2*
+// =========================================================================
+//  INFLOWS
+//     Node  (FLOW|Pollutant)  TimeSeries  Type  [UnitsFactor ScaleFactor Baseline Pattern]
+// =========================================================================
 
+inflows_sec  : "[INFLOWS]" _NL inflow_rec*
+inflow_rec   : NAME NAME NAME NAME TOKEN* _NL
 
+// =========================================================================
+//  DWF
+//     Node  (FLOW|Pollutant)  AvgValue  [Pat1 Pat2 Pat3 Pat4]
+// =========================================================================
 
-_sections       :  section{/TITLE/, title}
-                |  section{/OPTIONS/, options}
-                |  section{/REPORT/, report}
-                |  section{/FILES/, files}
+dwf_sec      : "[DWF]" _NL dwf_rec*
+dwf_rec      : NAME NAME NUMBER TOKEN* _NL
 
-                |  section{/RAINGAGES/, raingages}
-                |  section{/EVAPORATION/, evaporation}
-//                |  temperature
-//                |  adjustments
+// =========================================================================
+//  LOADINGS
+//     Subcatch  {Pollutant  Loading}...
+// =========================================================================
 
-                |  section{/SUBCATCHMENTS/, subcatchments}
-                |  section{/SUBAREAS/, subareas}
-                |  section{/INFILTRATION/, infiltration}
+loadings_sec : "[LOADINGS]" _NL loading_rec*
+loading_rec  : NAME TOKEN* _NL
 
-//                    |  lid_controls
-//                    |  lid_usage
+// =========================================================================
+//  CURVES
+//     Name  [Type]  X  Y  (type only on first row of each curve)
+// =========================================================================
 
-//                    |  aquifers
-//                    |  groundwater
-//                    |  gwf
-//                    |  snowpack
+curves_sec   : "[CURVES]" _NL curve_rec*
+curve_rec    : NAME TOKEN NUMBER NUMBER _NL
 
-                |  section{/JUNCTIONS/, junctions}
-//                    |  outfalls
-                |  section{/DIVIDERS/, dividers}
-//                    |  storage
+// =========================================================================
+//  TIMESERIES
+//     Name  (Date Time | Hours)  Value    or    Name FILE filename
+// =========================================================================
 
-                |  section{/CONDUITS/, conduits}
-//                    |  pumps
-//                    |  orifices
-//                    |  weirs
-//                    |  outlets
+timeseries_sec : "[TIMESERIES]" _NL timeseries_rec*
+timeseries_rec : NAME (TIME NUMBER)+ _NL
 
-                |  section{/XSECTIONS/, xsections}
-//                    |  transects
-//                    |  losses
-//                    |  controls
+// =========================================================================
+//  PATTERNS
+//     Name  Type  Multiplier...
+// =========================================================================
 
-                |  section{/POLLUTANTS/, pollutants}
-                |  section{/LANDUSES/, landuses}
-                |  section{/COVERAGES/, coverages}
-//                    |  loadings
-//                    |  buildup
-                |  section{/WASHOFF/, washoff}
-//                    |  treatment
+patterns_sec : "[PATTERNS]" _NL pattern_rec*
+pattern_rec  : NAME NAME NUMBER+ _NL
 
-//                    |  inflows
-//                    |  dwf
-//                    |  rdii
-//                    |  hydrographs
+// =========================================================================
+//  CONTROLS  — free-form rule blocks
+// =========================================================================
 
-//                    |  curves
-                |  section{/TIMESERIES/, timeseries}
-//                    |  patterns
+controls_sec : "[CONTROLS]" _NL control_rec*
+control_rec  : generic_rec
 
+// =========================================================================
+//  HYDROGRAPHS
+//     Name  [Gage | Month Response R T K IA_max IA_rec IA_ini]
+// =========================================================================
 
-_COMMENT        :  /;[^\n]*/
+hydrographs_sec : "[HYDROGRAPHS]" _NL hydrograph_rec*
+hydrograph_rec  : generic_rec
 
-_EOR            :  (_SP? _NL|_SP? _COMMENT _NL)
+// =========================================================================
+//  RDII
+//     Node  UHGroup  SewerArea
+// =========================================================================
 
-keyword         :  /[\/A-Z_]+/
+rdii_sec     : "[RDII]" _NL rdii_rec*
+rdii_rec     : NAME NAME NUMBER _NL
 
-word            :  /[a-zA-Z]+/
+// =========================================================================
+//  EVAPORATION
+// =========================================================================
 
-name            :  /[a-zA-Z0-9-@]+/
+evaporation_sec : "[EVAPORATION]" _NL evaporation_rec*
+evaporation_rec : generic_rec
 
-date            :  /\d{1,2}\/\d{1,2}(\/\d{4})?/
+// =========================================================================
+//  TEMPERATURE
+// =========================================================================
 
-time            :  /\d{1,2}:\d{2}(:\d{2})?/
+temperature_sec : "[TEMPERATURE]" _NL temperature_rec*
+temperature_rec : generic_rec
 
-float           :  /(\d+\.\d*|\.\d+)/
+// =========================================================================
+//  MAP
+// =========================================================================
 
-integer         :  /\d+/
+map_sec      : "[MAP]" _NL map_rec*
+map_rec      : generic_rec
 
-operator        :  /=|<>|<=?|>=?/
+// =========================================================================
+//  COORDINATES
+//     Node  X  Y
+// =========================================================================
 
-hyphen          :  /-/
+coordinates_sec : "[COORDINATES]" _NL coordinate_rec*
+coordinate_rec  : NAME NUMBER NUMBER _NL
+
+// =========================================================================
+//  VERTICES
+//     Link  X  Y
+// =========================================================================
+
+vertices_sec : "[VERTICES]" _NL vertex_rec*
+vertex_rec   : NAME NUMBER NUMBER _NL
+
+// =========================================================================
+//  POLYGONS
+//     Subcatch  X  Y
+// =========================================================================
+
+polygons_sec : "[POLYGONS]" _NL polygon_rec*
+polygon_rec  : NAME NUMBER NUMBER _NL
+
+// =========================================================================
+//  SYMBOLS
+//     Gage  X  Y
+// =========================================================================
+
+symbols_sec  : "[SYMBOLS]" _NL symbol_rec*
+symbol_rec   : NAME NUMBER NUMBER _NL
+
+// =========================================================================
+//  LABELS
+//     X  Y  Label  [Anchor Font Size Bold Italic]
+// =========================================================================
+
+labels_sec   : "[LABELS]" _NL label_rec*
+label_rec    : NUMBER NUMBER QUOTED_STRING TOKEN* _NL
+
+// =========================================================================
+//  TAGS
+//     ObjectType  Name  Tag
+// =========================================================================
+
+tags_sec     : "[TAGS]" _NL tag_rec*
+tag_rec      : NAME NAME NAME _NL
+
+// =========================================================================
+//  BACKDROP
+// =========================================================================
+
+backdrop_sec : "[BACKDROP]" _NL backdrop_rec*
+backdrop_rec : generic_rec
+
+// =========================================================================
+//  PROFILE
+// =========================================================================
+
+profile_sec  : "[PROFILE]" _NL profile_rec*
+profile_rec  : generic_rec
+
+// =========================================================================
+// Unknown / future sections — catch-all
+// =========================================================================
+
+unknown_sec  : SECTION_HEADER _NL generic_rec*
+
+// =========================================================================
+// Shared generic row — sequence of any tokens up to _NL
+// =========================================================================
+
+generic_rec  : TOKEN+ _NL
+
+
+// =========================================================================
+// Terminals
+// =========================================================================
+
+_COMMENT       :  /;[^\n]*/
+
+_EOR           :  (_SP? _NL|_SP? _COMMENT _NL)
+
+KEYWORD         :  /[\/A-Z_]+/
+
+// Section header: [WORD]  (must be first on line, case-insensitive handled externally)
+SECTION_HEADER : /\[[A-Za-z_\/]+\]/
+
+// Known section headers (declared explicitly so LALR table is deterministic)
+// These shadow SECTION_HEADER in section rules above.
+
+// Date: MM/DD/YYYY or M/D/YY
+DATE    : /\d{1,2}\/\d{1,2}\/\d{2,4}/
+
+// Time: HH:MM or HH:MM:SS
+TIME    : /\d{1,2}:\d{2}(:\d{2})?/
+
+// Quoted string
+QUOTED_STRING : /\"[^\"]*\"/
+
+// Floating-point or integer number (including scientific notation)
+NUMBER  : /[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/
+
+// Generic name/keyword token (anything without spaces that isn't a number)
+// Ordered after NUMBER so numbers match NUMBER first.
+NAME    : /[A-Za-z_*][A-Za-z0-9_\-\.\/]*/
+
+// VALUE covers anything — used in OPTIONS where values are free-form
+VALUE   : /\S+/
+
+// Generic TOKEN — catch-all for variable fields; matches after typed terminals
+TOKEN   : /\S+/
