@@ -160,8 +160,8 @@ xsection_rec  : NAME NAME TOKEN* _NL
 //  TRANSECTS  — multi-keyword sub-lines (NC / X1 / GR)
 // =========================================================================
 
-transects_sec : "[TRANSECTS]" _NL transect_rec*
-transect_rec  : generic_rec
+transects_sec : "[TRANSECTS]" _NL generic_rec*
+// transect_rec  : generic_rec
 
 // =========================================================================
 //  LOSSES
@@ -196,18 +196,18 @@ subareas_sec : "[SUBAREAS]" _NL subarea_rec*
 subarea_rec  : NAME NUMBER NUMBER NUMBER NUMBER NUMBER TOKEN? NUMBER? _NL
 
 // =========================================================================
-//  INFILTRATION  — fields depend on model; use generic
+//  INFILTRATION
 // =========================================================================
 
-infiltration_sec : "[INFILTRATION]" _NL infiltration_rec*
-infiltration_rec : generic_rec
+infiltration_sec : "[INFILTRATION]" _NL generic_rec*
+// infiltration_rec : generic_rec
 
 // =========================================================================
 //  LID_CONTROLS  — multi-line blocks with varying layer keywords
 // =========================================================================
 
-lid_controls_sec : "[LID_CONTROLS]" _NL lid_control_rec*
-lid_control_rec  : generic_rec
+lid_controls_sec : "[LID_CONTROLS]" _NL generic_rec*
+// lid_control_rec  : generic_rec
 
 // =========================================================================
 //  LID_USAGE
@@ -237,8 +237,8 @@ groundwater_rec : NAME NAME NAME NUMBER NUMBER NUMBER NUMBER NUMBER NUMBER NUMBE
 //  SNOWPACKS  — 4 fixed sub-line types per pack name
 // =========================================================================
 
-snowpacks_sec : "[SNOWPACKS]" _NL snowpack_rec*
-snowpack_rec  : generic_rec
+snowpacks_sec : "[SNOWPACKS]" _NL generic_rec*
+// snowpack_rec  : generic_rec
 
 // =========================================================================
 //  POLLUTANTS
@@ -340,16 +340,16 @@ pattern_rec  : NAME NAME NUMBER+ _NL
 //  CONTROLS  — free-form rule blocks
 // =========================================================================
 
-controls_sec : "[CONTROLS]" _NL control_rec*
-control_rec  : generic_rec
+controls_sec : "[CONTROLS]" _NL generic_rec*
+// control_rec  : generic_rec
 
 // =========================================================================
 //  HYDROGRAPHS
 //     Name  [Gage | Month Response R T K IA_max IA_rec IA_ini]
 // =========================================================================
 
-hydrographs_sec : "[HYDROGRAPHS]" _NL hydrograph_rec*
-hydrograph_rec  : generic_rec
+hydrographs_sec : "[HYDROGRAPHS]" _NL generic_rec*
+// hydrograph_rec  : generic_rec
 
 // =========================================================================
 //  RDII
@@ -361,24 +361,57 @@ rdii_rec     : NAME NAME NUMBER _NL
 
 // =========================================================================
 //  EVAPORATION
+//    Supported variants:
+//    - CONSTANT <rate>
+//    - MONTHLY <e1..e12>
+//    - TIMESERIES <name>
+//    - TEMPERATURE
+//    - FILE <...>
+//    - RECOVERY <...>
+//    - DRY_ONLY <YES|NO>
 // =========================================================================
 
-evaporation_sec : "[EVAPORATION]" _NL evaporation_rec*
-evaporation_rec : generic_rec
+
+evaporation_sec      : EVAP_HEADER _NL evaporation_var*
+
+evaporation_var      : evap_constant_rec
+                     | evap_monthly_rec
+                     | evap_timeseries_rec
+                     | evap_temperature_rec
+                     | evap_file_rec
+                     | evap_recovery_rec
+                     | evap_dryonly_rec
+
+evap_constant_rec    : EVAP_CONSTANT NUMBER _NL
+evap_monthly_rec     : EVAP_MONTHLY (NUMBER ~ 12) _NL
+evap_timeseries_rec  : EVAP_TIMESERIES NAME _NL
+evap_temperature_rec : EVAP_TEMPERATURE _NL
+evap_file_rec        : EVAP_FILE TOKEN* _NL
+evap_recovery_rec    : EVAP_RECOVERY TOKEN+ _NL
+evap_dryonly_rec     : EVAP_DRY_ONLY TOKEN _NL
+
+EVAP_HEADER          : "[EVAPORATION]"
+EVAP_CONSTANT        : "CONSTANT"
+EVAP_MONTHLY         : "MONTHLY"
+EVAP_TIMESERIES      : "TIMESERIES"
+EVAP_TEMPERATURE     : "TEMPERATURE"
+EVAP_FILE            : "FILE"
+EVAP_RECOVERY        : "RECOVERY"
+EVAP_DRY_ONLY        : "DRY_ONLY"
 
 // =========================================================================
 //  TEMPERATURE
 // =========================================================================
 
-temperature_sec : "[TEMPERATURE]" _NL temperature_rec*
-temperature_rec : generic_rec
+temperature_sec : "[TEMPERATURE]" _NL generic_rec*
+// temperature_rec : generic_rec
 
 // =========================================================================
 //  MAP
 // =========================================================================
 
-map_sec      : "[MAP]" _NL map_rec*
-map_rec      : generic_rec
+map_sec      : "[MAP]" _NL generic_rec*
+// map_rec      : generic_rec
 
 // =========================================================================
 //  COORDINATES
@@ -432,21 +465,21 @@ tag_rec      : NAME NAME NAME _NL
 //  BACKDROP
 // =========================================================================
 
-backdrop_sec : "[BACKDROP]" _NL backdrop_rec*
-backdrop_rec : generic_rec
+backdrop_sec : "[BACKDROP]" _NL generic_rec*
+//backdrop_rec : generic_rec
 
 // =========================================================================
 //  PROFILE
 // =========================================================================
 
-profile_sec  : "[PROFILE]" _NL profile_rec*
-profile_rec  : generic_rec
+profile_sec  : "[PROFILE]" _NL generic_rec*
+// profile_rec  : generic_rec
 
 // =========================================================================
 // Unknown / future sections — catch-all
 // =========================================================================
 
-unknown_sec  : SECTION_HEADER _NL generic_rec*
+// unknown_sec  : SECTION_HEADER _NL generic_rec*
 
 // =========================================================================
 // Shared generic row — sequence of any tokens up to _NL

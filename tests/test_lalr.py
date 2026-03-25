@@ -10,34 +10,12 @@
 
 import os
 
-from lark import Lark
 import pytest
+from lark import Lark
 
-
-DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data')
-EXAMPLE_PROJECT = os.path.join(DATA_PATH, 'example-project.inp')
-EXPECTED_TREE = os.path.join(DATA_PATH, 'expected-lalr.txt')
-
-
-def test_lalr():
-
-    # Read expected tree from file
-    with open(EXPECTED_TREE, 'r') as file:
-        expected = file.read().strip()
-
-    # Convert input file to parse tree
-    parser = Lark.open_from_package(
-        "swmm.parse", "input-lalr.lark", ("grammars",), parser="lalr"
-    )
-
-    # Create parse tree and convert to string
-    with open(EXAMPLE_PROJECT) as f:
-        file_tree = parser.parse(f.read())
-
-    output = str(file_tree).strip()
-
-    assert expected == output
-
+DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
+EXAMPLE_PROJECT = os.path.join(DATA_PATH, "example-project.inp")
+EXPECTED_TREE = os.path.join(DATA_PATH, "expected-lalr.txt")
 
 
 SECTION_CASES = [
@@ -86,7 +64,7 @@ SECTION_CASES = [
     ("VERTICES", "[VERTICES]\nC1 110.0 210.0\n"),
     ("POLYGONS", "[POLYGONS]\nS1 0.0 0.0\n"),
     ("SYMBOLS", "[SYMBOLS]\nRG1 50.0 50.0\n"),
-    ("LABELS", "[LABELS]\n100 200 \"Main Basin\"\n"),
+    ("LABELS", '[LABELS]\n100 200 "Main Basin"\n'),
     ("TAGS", "[TAGS]\nNODE J1 TAG_A\n"),
     ("BACKDROP", "[BACKDROP]\nFILE map.png\n"),
     ("PROFILE", "[PROFILE]\nLINK C1\n"),
@@ -114,3 +92,52 @@ def test_lalr_all_sections_together_parses():
     tree = parser.parse(inp_text)
 
     assert tree is not None
+
+
+EVAPORATION_CASES = [
+    ("CONSTANT", "[EVAPORATION]\nCONSTANT 0.1\n"),
+    ("MONTHLY", "[EVAPORATION]\nMONTHLY 1 1 1 1 1 1 1 1 1 1 1 1\n"),
+    ("TIMESERIES", "[EVAPORATION]\nTIMESERIES TS1\n"),
+    ("TEMPERATURE", "[EVAPORATION]\nTEMPERATURE\n"),
+    ("FILE", "[EVAPORATION]\nFILE climate-evap.dat\n"),
+    ("RECOVERY", "[EVAPORATION]\nRECOVERY PAT1\n"),
+    ("DRY_ONLY", "[EVAPORATION]\nDRY_ONLY YES\n"),
+]
+
+
+@pytest.mark.parametrize("variant_name, section_text", EVAPORATION_CASES)
+def test_evaporation_variants(variant_name, section_text):
+    parser = Lark.open_from_package(
+        "swmm.parse", "input-lalr.lark", ("grammars",), parser="lalr"
+    )
+
+    tree = parser.parse(section_text)
+
+    assert tree is not None, f"EVAPORATION variant {variant_name} did not parse"
+
+    # Optional stronger check: ensure variant keyword is present in tree string
+    # (useful when debugging token retention issues)
+    tree_s = str(tree)
+    assert variant_name in tree_s, f"{variant_name} missing from parse tree output"
+    print(tree_s)
+
+
+def test_lalr():
+
+    # Read expected tree from file
+    with open(EXPECTED_TREE, "r") as file:
+        expected = file.read().strip()
+
+    # Convert input file to parse tree
+    parser = Lark.open_from_package(
+        "swmm.parse", "input-lalr.lark", ("grammars",), parser="lalr"
+    )
+
+    # Create parse tree and convert to string
+    with open(EXAMPLE_PROJECT) as f:
+        file_tree = parser.parse(f.read())
+
+    output = str(file_tree).strip()
+
+    # print(output)
+    assert expected == output
