@@ -2,34 +2,68 @@
 #  to_input_file.py
 #
 #  Created: Apr 25, 2024
-#  Updated:
+#  Updated: Mar 25, 2026
 #
 #  Author:  Michael E. Tryby
 #           US EPA - ORD/CESER
 #
 
-import sys
+from lark import Token, Tree, Visitor
 
-from lark import Visitor
-
-
-NL = '\n'
-SP = ' '
+NL = "\n"
+SP = " "
+NS = ""
 
 
 class ToInputFile(Visitor):
-# Writes file parse tree to input file
     def __init__(self):
-        self.buffer = []
+        self._buffer = []
 
     def export(self):
-        print(''.join(self.buffer), end='')
+        return NS.join(self._buffer)
 
-    def section(self, tree):
-        self.buffer.append(NL)
-        self.buffer.append(f"[{tree.children[0]}]" + NL)
+    @staticmethod
+    def _is_header_token(tok):
+        return isinstance(tok, Token) and tok.type.endswith("_HEADER")
 
-    def record(self, tree):
-        fields = [sub_tree.children[0] for sub_tree in tree.children]
-        line = ' '.join(fields) + NL
-        self.buffer.append(line)
+    @staticmethod
+    def _is_newline_token(tok):
+        return isinstance(tok, Token) and (
+            tok.type in {"_NL", "NEWLINE"} or tok.value == "\n"
+        )
+
+    def _flatten_tokens(self, node):
+        out = []
+
+        def walk(obj):
+            if isinstance(obj, Token):
+                out.append(obj)
+            elif isinstance(obj, Tree):
+                for ch in obj.children:
+                    walk(ch)
+
+        walk(node)
+        return out
+
+    def __default__(self, tree):
+        first = tree.children[0] if tree.children else None
+
+        # Section: first child is a _HEADER token
+        if isinstance(first, Token) and self._is_header_token(first):
+            if self._buffer:
+                self._buffer.append(NL)
+            self._buffer.append(first.value)
+            self._buffer.append(NL)
+            return
+
+        # Record nodes: *_rec
+        if str(tree.data).endswith("_rec"):
+            fields = [
+                tok.value
+                for tok in self._flatten_tokens(tree)
+                if not self._is_newline_token(tok) and not self._is_header_token(tok)
+            ]
+
+            if fields:
+                self._buffer.append(SP.join(fields))
+                self._buffer.append(NL)
